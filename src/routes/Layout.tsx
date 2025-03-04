@@ -1,10 +1,16 @@
-// src/routes/Layout.tsx
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { useLocation } from 'react-router-dom';
-import { Home, Inbox, LayoutDashboard, Calendar, Search } from 'lucide-react';
+import {
+  Home,
+  Inbox,
+  LayoutDashboard,
+  Calendar,
+  Search,
+  FolderSearch2,
+} from 'lucide-react';
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -23,11 +29,11 @@ const mainItems = [
   //     icon: Inbox,
   //     badge: '12',
   //   },
-  //   {
-  //     title: 'Projects',
-  //     url: '/projects',
-  //     icon: LayoutDashboard,
-  //   },
+  {
+    title: 'Classes',
+    url: '/dashboard/classes',
+    icon: FolderSearch2,
+  },
   //   {
   //     title: 'Calendar',
   //     url: '/calendar',
@@ -42,10 +48,39 @@ const mainItems = [
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
-  const pageTitle =
-    location.pathname === '/'
-      ? 'Home'
-      : location.pathname.replace('/', '').replace('-', ' ').toUpperCase();
+  const getTitleByLocation = () => {
+    // First, try to find a match in your mainItems
+    const matchedItem = mainItems.find(
+      (item) => location.pathname === item.url
+    );
+    if (matchedItem) return matchedItem.title;
+
+    // If no match found, extract from path
+    const paths = location.pathname.split('/').filter(Boolean);
+    if (paths.length === 0) return 'Home';
+
+    // Find the last non-numeric segment
+    let lastTextSegment = '';
+    for (let i = paths.length - 1; i >= 0; i--) {
+      if (isNaN(Number(paths[i]))) {
+        lastTextSegment = paths[i];
+        break;
+      }
+    }
+
+    // If no text segment found, use the last segment
+    if (!lastTextSegment) {
+      lastTextSegment = paths[paths.length - 1];
+    }
+
+    // Convert to title case with multiple word handling
+    return lastTextSegment
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  const pageTitle = location.pathname === '/' ? 'Home' : getTitleByLocation();
 
   return (
     <SidebarProvider>
@@ -64,18 +99,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </header>
 
-          <div className="flex-1 p-6 overflow-auto">
+          <div className="flex-1 p-6 overflow-auto w-full">
             {/* Use Outlet for react-router-dom nested routes or children prop */}
             {/* Checking if Outlet is available, otherwise render children */}
-            {typeof Outlet === 'function' ? (
-              <Outlet />
-            ) : React.isValidElement(children) ? (
-              children
-            ) : null}
+            <div className="w-full h-full">
+              {typeof Outlet === 'function' ? (
+                <Outlet />
+              ) : React.isValidElement(children) ? (
+                children
+              ) : null}
+            </div>
           </div>
 
-          <footer className="border-t py-4 px-6 text-center text-muted-foreground">
-            <p>© {new Date().getFullYear()} ProfCelerate</p>
+          <footer className="border-t p-2 text-sm text-center text-muted-foreground">
+            ©{new Date().getFullYear()} ProfCelerate
           </footer>
         </main>
       </div>

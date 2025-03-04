@@ -1,5 +1,4 @@
-// src/routes/index.tsx
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 // Layout
@@ -14,6 +13,10 @@ import NotFound from '../pages/NotFound';
 import ProtectedRoute from './ProtectedRoute';
 import DashboardHome from '../pages/Dashboard/DashboardHome';
 import Settings from '../pages/Dashboard/Settings';
+import Classes from '@/pages/Dashboard/Class/Classes';
+
+// Lazy-loaded pages for better performance
+const ClassPage = lazy(() => import('@/pages/Dashboard/Class/ClassPage'));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -30,6 +33,29 @@ const AppRoutes: React.FC = () => {
           <Route path="/dashboard" element={<Layout />}>
             <Route index element={<DashboardHome />} />
             <Route path="settings" element={<Settings />} />
+
+            {/* Classes routes */}
+            <Route path="classes">
+              <Route index element={<Classes />} />
+              <Route
+                path=":id"
+                element={
+                  <Suspense fallback={<div>Loading class...</div>}>
+                    <ClassPage />
+                  </Suspense>
+                }
+              />
+
+              {/* Future assignment route */}
+              <Route
+                path=":id/assignments/:assignmentId"
+                element={
+                  <Suspense fallback={<div>Loading assignment...</div>}>
+                    <div>Assignment Page (Coming Soon)</div>
+                  </Suspense>
+                }
+              />
+            </Route>
           </Route>
         </Route>
 
