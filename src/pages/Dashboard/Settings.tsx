@@ -2,6 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import {
+  transformToCamelCase,
+  transformToSnakeCase,
+} from '@/lib/caseConversion';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -20,6 +24,14 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { User } from '@supabase/supabase-js';
+
+interface Profile {
+  id: string;
+  fullName: string;
+  institution: string;
+  department: string;
+  updatedAt: string;
+}
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -48,11 +60,13 @@ export default function Settings() {
             .single();
 
           if (profile) {
+            // Transform the profile data from snake_case to camelCase
+            const transformedProfile = transformToCamelCase<Profile>(profile);
             setFormData({
-              fullName: profile.full_name || '',
+              fullName: transformedProfile.fullName || '',
               email: user.email || '',
-              institution: profile.institution || '',
-              department: profile.department || '',
+              institution: transformedProfile.institution || '',
+              department: transformedProfile.department || '',
             });
           }
         }
@@ -80,14 +94,19 @@ export default function Settings() {
     if (!user) return;
 
     try {
-      // Update profile in profiles table
-      const { error: profileError } = await supabase.from('profiles').upsert({
+      // Transform form data to snake_case before sending to Supabase
+      const transformedData = transformToSnakeCase({
         id: user.id,
-        full_name: formData.fullName,
+        fullName: formData.fullName,
         institution: formData.institution,
         department: formData.department,
-        updated_at: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
+
+      // Update profile in profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert(transformedData);
 
       if (profileError) throw profileError;
 

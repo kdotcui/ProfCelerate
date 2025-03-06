@@ -5,6 +5,7 @@ import { Users, Calendar, BookOpen, Clock, Pencil } from 'lucide-react';
 import { ClassData } from '@/types/class';
 import { Button } from '@/components/ui/button';
 import EditClassDialog from '@/pages/Dashboard/Class/EditClassDialog';
+import { toast } from 'sonner';
 
 interface ClassHeaderProps {
   classData: ClassData;
@@ -24,11 +25,6 @@ export const ClassHeader: React.FC<ClassHeaderProps> = ({ classData }) => {
     }
   };
 
-  const handleEditClass = (updatedClass: ClassData) => {
-    // TODO: Implement class update logic
-    console.log('Updated class:', updatedClass);
-  };
-
   return (
     <Card className="mb-6">
       <CardContent className="p-6">
@@ -43,13 +39,6 @@ export const ClassHeader: React.FC<ClassHeaderProps> = ({ classData }) => {
             </p>
             <p className="max-w-2xl mt-2">{classData.description}</p>
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setEditDialogOpen(true)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -70,13 +59,6 @@ export const ClassHeader: React.FC<ClassHeaderProps> = ({ classData }) => {
           </div>
         </div>
       </CardContent>
-
-      <EditClassDialog
-        open={editDialogOpen}
-        setOpen={setEditDialogOpen}
-        classData={classData}
-        onSave={handleEditClass}
-      />
     </Card>
   );
 };

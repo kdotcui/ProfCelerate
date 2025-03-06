@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { User as SupabaseUser } from '@supabase/supabase-js';
+import { toCamelCase } from '@/lib/utils';
 
 import {
   Sidebar,
@@ -59,7 +60,8 @@ interface AppSidebarProps {
 }
 
 interface UserProfile {
-  full_name: string;
+  userId: string;
+  fullName: string;
   institution: string;
   department: string;
 }
@@ -76,14 +78,19 @@ export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+        console.log('user', user);
         setUser(user);
         if (user) {
-          const { data: profile } = await supabase
+          const { data: profileData } = await supabase
             .from('profiles')
             .select('*')
-            .eq('use_id', user.id)
+            .eq('user_id', user.id)
             .single();
-          setProfile(profile);
+
+          console.log('profile', profileData);
+          if (profileData) {
+            setProfile(toCamelCase(profileData));
+          }
         }
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -191,19 +198,19 @@ export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
                 <Avatar className="h-8 w-8">
                   <AvatarImage
                     src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      profile?.full_name || user?.email || ''
+                      profile?.fullName || user?.email || ''
                     )}&background=random`}
                     alt="Profile"
                   />
                   <AvatarFallback>
-                    {profile?.full_name
-                      ? getInitials(profile.full_name)
+                    {profile?.fullName
+                      ? getInitials(profile.fullName)
                       : user?.email?.[0].toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start text-xs">
                   <span className="font-medium">
-                    {profile?.full_name || 'Loading...'}
+                    {profile?.fullName || 'Loading...'}
                   </span>
                   <span className="text-muted-foreground">
                     {user?.email || 'Loading...'}

@@ -11,7 +11,7 @@ import {
 import { PlusCircle, RefreshCw } from 'lucide-react';
 import { AssignmentList } from './assignment-list';
 import { CreateAssignmentDialog } from './create-assignment-dialog';
-import { fetchAssignments } from '@/lib/api/classes'; // Mock API
+// import { fetchAssignments } from '@/lib/api/classes'; // Mock API
 
 import { Assignment } from '@/types/class';
 
@@ -31,8 +31,8 @@ export const AutograderDashboard: React.FC<AutograderDashboardProps> = ({
     const loadAssignments = async () => {
       setLoading(true);
       try {
-        const data = await fetchAssignments(classId);
-        setAssignments(data);
+        // const data = await fetchAssignments(classId);
+        // setAssignments(data);
       } catch (error) {
         console.error('Failed to load assignments:', error);
       } finally {

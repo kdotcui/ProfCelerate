@@ -52,7 +52,7 @@ export default function Classes() {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-
+        console.log('data', data);
         setClasses(data || []);
       } catch (error: any) {
         console.error('Error fetching classes:', error);
