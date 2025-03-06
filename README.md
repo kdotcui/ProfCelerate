@@ -5,3 +5,5 @@ if you want to run the project, you need to install the dependencies and run the
 pnpm i
 
 pnpm dev
+
+ofc u dont get the supabase credentials

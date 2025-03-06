@@ -1,9 +1,16 @@
 // src/App.tsx
 import React from 'react';
-import AppRoutes from './routes';
+import { RouterProvider } from 'react-router-dom';
+import router from './routes';
+import { Toaster } from 'sonner';
 
 function App() {
-  return <AppRoutes />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster />
+    </>
+  );
 }
 
 export default App;
