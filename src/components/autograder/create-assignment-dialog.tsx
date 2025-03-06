@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -18,35 +19,35 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Assignment } from '@/types/class';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
+import { Assignment, AssignmentType } from '@/types/assignment';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { transformToSnakeCase } from '@/lib/caseConversion';
 
 interface CreateAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (assignment: Omit<Assignment, 'id'>) => void;
+  classId: number;
+  onAssignmentCreated: (assignment: Assignment) => void;
 }
 
 export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
   open,
   onOpenChange,
-  onSubmit,
+  classId,
+  onAssignmentCreated,
 }) => {
-  const [formData, setFormData] = useState<Omit<Assignment, 'id'>>({
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<
+    Omit<Assignment, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+  >({
     title: '',
     description: '',
     points: 100,
-
     type: 'pdf',
-    submissions: 0,
-    createdAt: new Date().toISOString(),
+    classId,
   });
 
   const handleInputChange = (
@@ -64,100 +65,135 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
     }
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleSelectChange = (value: AssignmentType) => {
+    setFormData((prev) => ({ ...prev, type: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      points: 100,
-      type: 'pdf',
-      submissions: 0,
-      createdAt: new Date().toISOString(),
-    });
+    setLoading(true);
+
+    try {
+      // Get the current user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) throw new Error('User not authenticated');
+
+      // Transform form data to snake_case before sending to Supabase
+      const transformedData = transformToSnakeCase({
+        ...formData,
+        user_id: user.id,
+      });
+
+      const { data, error } = await supabase
+        .from('assignments')
+        .insert(transformedData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      onAssignmentCreated(data);
+      onOpenChange(false);
+      toast.success('Assignment created successfully');
+
+      // Navigate to the new assignment's page
+      navigate(`/dashboard/classes/${classId}/assignments/${data.id}`);
+    } catch (error: any) {
+      console.error('Error creating assignment:', error);
+      toast.error(error.message || 'Failed to create assignment');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Create New Assignment</DialogTitle>
-            <DialogDescription>
-              You can add grading criteria after the assignment is created.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Assignment Title</Label>
-              <Input
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                placeholder="Title of the assignment"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Describe the assignment, objectives, and requirements..."
-                required
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+    <>
+      <Button onClick={() => onOpenChange(true)}>
+        <PlusCircle className="h-4 w-4 mr-2" />
+        Create Assignment
+      </Button>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[550px]">
+          <form onSubmit={handleSubmit}>
+            <DialogHeader>
+              <DialogTitle>Create New Assignment</DialogTitle>
+              <DialogDescription>
+                Add a new assignment to your class
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="points">Points</Label>
+                <Label htmlFor="title">Assignment Title</Label>
                 <Input
-                  id="points"
-                  name="points"
-                  type="number"
-                  min="1"
-                  value={formData.points}
-                  onChange={handleNumberInputChange}
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  placeholder="Title of the assignment"
                   required
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="type">Assignment Type</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value) => handleSelectChange('type', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="voice">Voice</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="Describe the assignment, objectives, and requirements..."
+                  required
+                  className="min-h-[100px]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="points">Points</Label>
+                  <Input
+                    id="points"
+                    name="points"
+                    type="number"
+                    min="1"
+                    value={formData.points}
+                    onChange={handleNumberInputChange}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="type">Assignment Type</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={handleSelectChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pdf">PDF</SelectItem>
+                      <SelectItem value="voice">Voice</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit">Create Assignment</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Creating...' : 'Create Assignment'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

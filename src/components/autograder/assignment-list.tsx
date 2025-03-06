@@ -26,7 +26,7 @@ import {
   ExternalLink,
   Edit,
 } from 'lucide-react';
-import { Assignment } from '@/types/class';
+import { Assignment } from '@/types/assignment';
 import { formatDate } from '@/lib/utils';
 
 interface AssignmentListProps {
@@ -84,14 +84,14 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
             </div>
           </CardHeader>
           <CardContent className="pb-2 flex-1">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>Created: {formatDate(assignment.createdAt)}</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Users className="h-4 w-4" />
-                <span>{assignment.submissions} submissions</span>
+                <Clock className="h-4 w-4" />
+                <span>Updated: {formatDate(assignment.updatedAt)}</span>
               </div>
             </div>
           </CardContent>

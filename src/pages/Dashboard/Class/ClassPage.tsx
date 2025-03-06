@@ -41,6 +41,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import EditClassDialog from './EditClassDialog';
 import { ClassHeader } from '@/components/class/class-header';
+import { CreateAssignmentDialog } from '@/components/autograder/create-assignment-dialog';
 
 export default function ClassPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +50,8 @@ export default function ClassPage() {
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [createAssignmentDialogOpen, setCreateAssignmentDialogOpen] =
+    useState(false);
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -141,6 +144,11 @@ export default function ClassPage() {
     }
   };
 
+  const handleAssignmentCreated = (assignment: Assignment) => {
+    setAssignments((prev) => [...prev, assignment]);
+    toast.success('Assignment created successfully');
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto">
@@ -175,12 +183,12 @@ export default function ClassPage() {
         </Breadcrumb>
 
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => navigate(`/dashboard/classes/${id}/assignments/new`)}
-          >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            New Assignment
-          </Button>
+          <CreateAssignmentDialog
+            open={createAssignmentDialogOpen}
+            onOpenChange={setCreateAssignmentDialogOpen}
+            classId={parseInt(id || '0')}
+            onAssignmentCreated={handleAssignmentCreated}
+          />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
@@ -226,11 +234,7 @@ export default function ClassPage() {
                 <p className="text-muted-foreground mb-4">
                   Create your first assignment to get started
                 </p>
-                <Button
-                  onClick={() =>
-                    navigate(`/dashboard/classes/${id}/assignments/new`)
-                  }
-                >
+                <Button onClick={() => setCreateAssignmentDialogOpen(true)}>
                   <PlusCircle className="h-4 w-4 mr-2" />
                   Create Assignment
                 </Button>
@@ -241,6 +245,11 @@ export default function ClassPage() {
                   <Card
                     key={assignment.id}
                     className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/classes/${id}/assignments/${assignment.id}`
+                      )
+                    }
                   >
                     <CardHeader>
                       <div className="flex justify-between items-start">

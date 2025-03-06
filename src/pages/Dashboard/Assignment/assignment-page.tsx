@@ -17,12 +17,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, FileUp, RefreshCw } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import {
+  transformToCamelCase,
+  transformToSnakeCase,
+} from '@/lib/caseConversion';
 
 // Import components
 import { AssignmentDetails } from './assignment-details';
 import { SubmissionSection } from './submission-section';
 import { FileUploadForm } from './file-upload-form';
-import { Assignment } from '@/types/class';
+import { Assignment } from '@/types/assignment';
+import { EditAssignmentDialog } from '@/components/autograder/edit-assignment-dialog';
 
 export interface SubmissionBatch {
   id: string;
@@ -30,39 +37,15 @@ export interface SubmissionBatch {
   uploadedAt: string;
   status: 'grading' | 'completed' | 'failed';
   fileCount: number;
-  gradedCount: number;
 }
 
-// Mock data (would come from API in real implementation)
-const mockAssignment: Assignment = {
-  id: '1',
-  title: 'Programming Assignment 3: Data Structures',
-  description:
-    'Implement a binary search tree and perform various operations on it.',
-  points: 100,
-  createdAt: '2025-03-01T10:00:00Z',
-  type: 'voice',
-  submissions: 0,
-};
-
-const mockSubmissions: SubmissionBatch[] = [
-  {
-    id: 'batch1',
-    name: 'Section A Submissions',
-    uploadedAt: '2025-03-10T14:30:00Z',
-    status: 'completed',
-    fileCount: 28,
-    gradedCount: 28,
-  },
-  {
-    id: 'batch2',
-    name: 'Section B Submissions',
-    uploadedAt: '2025-03-12T10:15:00Z',
-    status: 'grading',
-    fileCount: 32,
-    gradedCount: 18,
-  },
-];
+interface SubmissionData {
+  id: string;
+  batchName?: string;
+  createdAt: string;
+  status: 'grading' | 'completed' | 'failed';
+  fileCount?: number;
+}
 
 const AssignmentPage: React.FC = () => {
   const { classId, assignmentId } = useParams<{
@@ -76,56 +59,147 @@ const AssignmentPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('details');
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [showUploadForm, setShowUploadForm] = useState<boolean>(false);
+  const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
+
+  const fetchAssignmentData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('assignments')
+        .select('*')
+        .eq('id', assignmentId)
+        .single();
+
+      if (error) throw error;
+      if (!data) throw new Error('Assignment not found');
+
+      console.log('Raw assignment data from Supabase:', data);
+      // Transform snake_case to camelCase
+      const transformedAssignment = transformToCamelCase(data) as Assignment;
+      console.log('Transformed assignment data:', transformedAssignment);
+
+      // Validate required fields
+      if (
+        !transformedAssignment.createdAt ||
+        !transformedAssignment.updatedAt
+      ) {
+        console.error(
+          'Missing date fields in transformed assignment:',
+          transformedAssignment
+        );
+        // Set default values if missing
+        transformedAssignment.createdAt = new Date().toISOString();
+        transformedAssignment.updatedAt = new Date().toISOString();
+      }
+
+      setAssignment(transformedAssignment);
+
+      // Fetch submissions for this assignment
+      const { data: submissionsData, error: submissionsError } = await supabase
+        .from('submissions')
+        .select('*')
+        .eq('assignment_id', assignmentId)
+        .order('created_at', { ascending: false });
+
+      if (submissionsError) throw submissionsError;
+
+      // Transform submissions data to match SubmissionBatch interface
+      const transformedSubmissions: SubmissionBatch[] = (
+        submissionsData || []
+      ).map((submission) => {
+        const camelCaseSubmission = transformToCamelCase(
+          submission
+        ) as SubmissionData;
+        return {
+          id: camelCaseSubmission.id,
+          name:
+            camelCaseSubmission.batchName || `Batch ${camelCaseSubmission.id}`,
+          uploadedAt: camelCaseSubmission.createdAt,
+          status: camelCaseSubmission.status,
+          fileCount: camelCaseSubmission.fileCount || 0,
+        };
+      });
+
+      setSubmissions(transformedSubmissions);
+    } catch (error: any) {
+      console.error('Error fetching assignment data:', error);
+      toast.error(error.message || 'Failed to load assignment data');
+      if (error.message === 'Assignment not found') {
+        navigate(`/dashboard/classes/${classId}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Mock API fetch
-    const fetchData = async (): Promise<void> => {
-      setLoading(true);
-      try {
-        // Simulate API call delay
-        setTimeout(() => {
-          setAssignment(mockAssignment);
-          setSubmissions(mockSubmissions);
-          setLoading(false);
-        }, 800);
-      } catch (error) {
-        console.error('Failed to fetch assignment data:', error);
-        setLoading(false);
-      }
-    };
+    fetchAssignmentData();
+  }, [assignmentId, classId, navigate]);
 
-    fetchData();
-  }, [assignmentId]);
-
-  const handleRefresh = (): void => {
+  const handleRefresh = async (): Promise<void> => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
+    await fetchAssignmentData();
+    setRefreshing(false);
   };
-
-  console.log('ids: ', classId, assignmentId);
 
   const handleBack = (): void => {
-    navigate(-1);
+    navigate(`/dashboard/classes/${classId}`);
   };
 
-  const handleSubmitFiles = (files: File[], batchName: string): void => {
-    // Here you would call your API to upload and process files
-    console.log('Submitting files:', files, 'Batch name:', batchName);
+  const handleSubmitFiles = async (
+    files: File[],
+    batchName: string
+  ): Promise<void> => {
+    try {
+      // Transform data to snake_case before sending to Supabase
+      const submissionData = transformToSnakeCase({
+        assignment_id: assignmentId,
+        batch_name: batchName,
+        file_count: files.length,
+        status: 'grading',
+      });
 
-    // Add new batch to the submissions list
-    const newBatch: SubmissionBatch = {
-      id: `batch${submissions.length + 1}`,
-      name: batchName || `Batch ${submissions.length + 1}`,
-      uploadedAt: new Date().toISOString(),
-      status: 'grading',
-      fileCount: files.length,
-      gradedCount: 0,
-    };
+      // Create submission record in database
+      const { data: submission, error: submissionError } = await supabase
+        .from('submissions')
+        .insert(submissionData)
+        .select()
+        .single();
 
-    setSubmissions([newBatch, ...submissions]);
-    setShowUploadForm(false);
+      if (submissionError) throw submissionError;
+
+      // Transform the response to camelCase
+      const transformedSubmission = transformToCamelCase(
+        submission
+      ) as SubmissionData;
+
+      // Add new batch to the submissions list
+      const newBatch: SubmissionBatch = {
+        id: transformedSubmission.id,
+        name:
+          transformedSubmission.batchName ||
+          `Batch ${transformedSubmission.id}`,
+        uploadedAt: transformedSubmission.createdAt,
+        status: transformedSubmission.status,
+        fileCount: transformedSubmission.fileCount || 0,
+      };
+
+      setSubmissions([newBatch, ...submissions]);
+      setShowUploadForm(false);
+      toast.success('Files uploaded successfully');
+    } catch (error: any) {
+      console.error('Error uploading files:', error);
+      toast.error(error.message || 'Failed to upload files');
+    }
+  };
+
+  const handleAssignmentUpdated = (updatedAssignment: Assignment) => {
+    // Transform the updated assignment data to camelCase
+    const transformedAssignment = transformToCamelCase(
+      updatedAssignment
+    ) as Assignment;
+    console.log('Updated assignment before transform:', updatedAssignment);
+    console.log('Updated assignment after transform:', transformedAssignment);
+    setAssignment(transformedAssignment);
   };
 
   if (loading) {
@@ -152,16 +226,6 @@ const AssignmentPage: React.FC = () => {
       </div>
     );
   }
-
-  const getStatusBadge = (status: string): JSX.Element => {
-    if (status === 'published') {
-      return <Badge className="bg-green-500">Published</Badge>;
-    } else if (status === 'draft') {
-      return <Badge className="bg-yellow-500">Draft</Badge>;
-    } else {
-      return <Badge className="bg-gray-500">Archived</Badge>;
-    }
-  };
 
   return (
     <div className="container mx-auto p-6">
@@ -222,7 +286,7 @@ const AssignmentPage: React.FC = () => {
             <div>
               <Button
                 className="flex items-center gap-2"
-                // onClick={() => setShowUploadForm(true)}
+                onClick={() => setShowEditDialog(true)}
               >
                 <FileUp className="h-4 w-4" />
                 Edit Assignment
@@ -246,7 +310,10 @@ const AssignmentPage: React.FC = () => {
         </TabsList>
 
         <TabsContent value="details">
-          <AssignmentDetails assignment={assignment} />
+          <AssignmentDetails
+            assignment={assignment}
+            onAssignmentUpdated={handleAssignmentUpdated}
+          />
         </TabsContent>
 
         <TabsContent value="submissions">
@@ -265,6 +332,16 @@ const AssignmentPage: React.FC = () => {
           }
           onClose={() => setShowUploadForm(false)}
           onSubmit={handleSubmitFiles}
+        />
+      )}
+
+      {/* Edit Assignment Dialog */}
+      {assignment && (
+        <EditAssignmentDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          assignment={assignment}
+          onAssignmentUpdated={handleAssignmentUpdated}
         />
       )}
     </div>
