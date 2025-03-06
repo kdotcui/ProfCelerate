@@ -18,6 +18,7 @@ import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import AuthCallback from '@/pages/AuthCallback';
 import Dashboard from '@/pages/Dashboard/Dashboard';
+import { GradedSubmissionsPage } from '@/pages/Dashboard/Assignment/graded-submissions-page';
 
 // Lazy-loaded pages for better performance
 const ClassPage = lazy(() => import('@/pages/Dashboard/Class/ClassPage'));
@@ -84,6 +85,14 @@ const router = createBrowserRouter([
                 element: (
                   <Suspense fallback={<div>Loading assignment...</div>}>
                     <AssignmentPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ':classId/assignments/:assignmentId/submissions/:submissionId',
+                element: (
+                  <Suspense fallback={<div>Loading submission results...</div>}>
+                    <GradedSubmissionsPage />
                   </Suspense>
                 ),
               },

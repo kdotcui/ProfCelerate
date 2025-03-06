@@ -23,6 +23,7 @@ import {
   transformToCamelCase,
   transformToSnakeCase,
 } from '@/lib/caseConversion';
+import { gradeSubmission } from '@/services/autograder';
 
 // Import components
 import { AssignmentDetails } from './assignment-details';
@@ -150,12 +151,21 @@ const AssignmentPage: React.FC = () => {
     batchName: string
   ): Promise<void> => {
     try {
+      // Get the current user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) throw new Error('User not authenticated');
+
       // Transform data to snake_case before sending to Supabase
       const submissionData = transformToSnakeCase({
         assignment_id: assignmentId,
         batch_name: batchName,
         file_count: files.length,
         status: 'grading',
+        user_id: user.id,
       });
 
       // Create submission record in database
@@ -186,6 +196,55 @@ const AssignmentPage: React.FC = () => {
       setSubmissions([newBatch, ...submissions]);
       setShowUploadForm(false);
       toast.success('Files uploaded successfully');
+
+      // Start the grading process
+      if (assignment?.gradingCriteria) {
+        try {
+          const results = await gradeSubmission(
+            files,
+            assignment.gradingCriteria,
+            transformedSubmission.id,
+            assignment.points
+          );
+
+          // Update submission status to completed
+          const { error: updateError } = await supabase
+            .from('submissions')
+            .update({ status: 'completed' })
+            .eq('id', transformedSubmission.id);
+
+          if (updateError) throw updateError;
+
+          // Update the submission status in the UI
+          setSubmissions((prevSubmissions) =>
+            prevSubmissions.map((sub) =>
+              sub.id === transformedSubmission.id
+                ? { ...sub, status: 'completed' }
+                : sub
+            )
+          );
+
+          toast.success('Grading completed successfully');
+        } catch (error: any) {
+          console.error('Error during grading:', error);
+          // Update submission status to failed
+          await supabase
+            .from('submissions')
+            .update({ status: 'failed' })
+            .eq('id', transformedSubmission.id);
+
+          // Update the submission status in the UI
+          setSubmissions((prevSubmissions) =>
+            prevSubmissions.map((sub) =>
+              sub.id === transformedSubmission.id
+                ? { ...sub, status: 'failed' }
+                : sub
+            )
+          );
+
+          toast.error('Error during grading process');
+        }
+      }
     } catch (error: any) {
       console.error('Error uploading files:', error);
       toast.error(error.message || 'Failed to upload files');
@@ -320,6 +379,8 @@ const AssignmentPage: React.FC = () => {
           <SubmissionSection
             submissions={submissions}
             onUpload={() => setShowUploadForm(true)}
+            classId={classId!}
+            assignmentId={assignmentId!}
           />
         </TabsContent>
       </Tabs>
@@ -332,6 +393,7 @@ const AssignmentPage: React.FC = () => {
           }
           onClose={() => setShowUploadForm(false)}
           onSubmit={handleSubmitFiles}
+          gradingCriteria={assignment.gradingCriteria}
         />
       )}
 

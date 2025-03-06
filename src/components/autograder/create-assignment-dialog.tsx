@@ -40,9 +40,13 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
 }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<
-    Omit<Assignment, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
-  >({
+  const [formData, setFormData] = useState<{
+    title: string;
+    description: string;
+    points: number;
+    type: AssignmentType;
+    classId: number;
+  }>({
     title: '',
     description: '',
     points: 100,

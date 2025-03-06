@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -24,10 +25,14 @@ import {
   UploadCloud,
 } from 'lucide-react';
 import { SubmissionBatch } from './assignment-page';
+import { FileUploadForm } from './file-upload-form';
+import { GradedSubmissions } from './graded-submissions';
 
 interface SubmissionSectionProps {
   submissions: SubmissionBatch[];
   onUpload: () => void;
+  classId: string;
+  assignmentId: string;
 }
 
 // Format dates
@@ -45,7 +50,14 @@ const formatDate = (dateString: string): string => {
 export const SubmissionSection: React.FC<SubmissionSectionProps> = ({
   submissions,
   onUpload,
+  classId,
+  assignmentId,
 }) => {
+  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(
+    null
+  );
+  const navigate = useNavigate();
+
   if (submissions.length === 0) {
     return (
       <Card>
@@ -72,96 +84,64 @@ export const SubmissionSection: React.FC<SubmissionSectionProps> = ({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>Submission Batches</CardTitle>
-            <CardDescription>
-              Manage uploaded submission batches
-            </CardDescription>
-          </div>
-          <Button className="flex items-center gap-2" onClick={onUpload}>
-            <FileUp className="h-4 w-4" />
-            New Batch
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border overflow-hidden">
-          <div className="grid grid-cols-12 bg-gray-50 px-4 py-3 text-sm font-medium">
-            <div className="col-span-4">Batch Name</div>
-            <div className="col-span-3">Uploaded</div>
-            <div className="col-span-2">Status</div>
-            <div className="col-span-2">Files</div>
-            <div className="col-span-1 text-right">Actions</div>
-          </div>
-          <div className="divide-y">
-            {submissions.map((batch) => (
-              <div
-                key={batch.id}
-                className="grid grid-cols-12 px-4 py-3 items-center hover:bg-gray-50"
-              >
-                <div className="col-span-4 font-medium">{batch.name}</div>
-                <div className="col-span-3 text-sm text-gray-500">
-                  {formatDate(batch.uploadedAt)}
-                </div>
-                <div className="col-span-2">
-                  {batch.status === 'completed' && (
-                    <Badge className="bg-green-500 flex items-center w-fit gap-1">
-                      <CheckCircle className="h-3 w-3" />
-                      Completed
-                    </Badge>
-                  )}
-                  {batch.status === 'grading' && (
-                    <Badge className="bg-blue-500 flex items-center w-fit gap-1">
-                      <RefreshCw className="h-3 w-3 animate-spin" />
-                      Grading
-                    </Badge>
-                  )}
-                  {batch.status === 'failed' && (
-                    <Badge className="bg-red-500 flex items-center w-fit gap-1">
-                      <XCircle className="h-3 w-3" />
-                      Failed
-                    </Badge>
-                  )}
-                </div>
-                <div className="col-span-2 text-sm">
-                  <span className="font-medium">{batch.gradedCount}</span>/
-                  {batch.fileCount} graded
-                </div>
-                <div className="col-span-1 flex justify-end gap-1">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>View Submissions</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Submissions</h2>
+        <Button onClick={onUpload} className="flex items-center gap-2">
+          <FileUp className="h-4 w-4" />
+          Upload Files
+        </Button>
+      </div>
 
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Download Results</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+      <div className="grid gap-4">
+        {submissions.map((submission) => (
+          <div key={submission.id} className="border rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium">{submission.name}</h3>
+                <p className="text-sm text-gray-500">
+                  {submission.fileCount}{' '}
+                  {submission.fileCount === 1 ? 'file' : 'files'} •{' '}
+                  {new Date(submission.uploadedAt).toLocaleString()}
+                </p>
               </div>
-            ))}
+              <div className="flex items-center gap-4">
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    submission.status === 'completed'
+                      ? 'bg-green-100 text-green-800'
+                      : submission.status === 'failed'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}
+                >
+                  {submission.status.charAt(0).toUpperCase() +
+                    submission.status.slice(1)}
+                </span>
+                {submission.status === 'completed' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/classes/${classId}/assignments/${assignmentId}/submissions/${submission.id}`
+                      )
+                    }
+                  >
+                    View Results
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
+        ))}
+      </div>
+
+      {selectedSubmission && (
+        <div className="mt-8">
+          <GradedSubmissions submissionId={selectedSubmission} />
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,24 +10,46 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FileText, UploadCloud, XCircle, RefreshCw, Info } from 'lucide-react';
+import {
+  FileText,
+  UploadCloud,
+  XCircle,
+  RefreshCw,
+  Info,
+  AlertCircle,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FileUploadFormProps {
   acceptedFileTypes: string[];
   onClose: () => void;
   onSubmit: (files: File[], batchName: string) => void;
+  gradingCriteria?: string;
 }
 
 export const FileUploadForm: React.FC<FileUploadFormProps> = ({
   acceptedFileTypes = [],
   onClose,
   onSubmit,
+  gradingCriteria,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [batchName, setBatchName] = useState<string>('');
   const [processingSubmission, setProcessingSubmission] =
     useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const validateFileType = (file: File): boolean => {
+    if (acceptedFileTypes.includes('audio/*')) {
+      return file.type.startsWith('audio/');
+    }
+    if (acceptedFileTypes.includes('application/pdf')) {
+      return file.type === 'application/pdf';
+    }
+    return false;
+  };
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
@@ -43,31 +65,76 @@ export const FileUploadForm: React.FC<FileUploadFormProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
+    setError(null);
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const newFiles = Array.from(e.dataTransfer.files);
-      setSelectedFiles((prev) => [...prev, ...newFiles]);
+      const validFiles = newFiles.filter(validateFileType);
+      const invalidFiles = newFiles.filter((file) => !validateFileType(file));
+
+      if (invalidFiles.length > 0) {
+        setError(
+          `Some files were not added because they are not supported. Supported types: ${acceptedFileTypes.join(
+            ', '
+          )}`
+        );
+      }
+
+      if (validFiles.length > 0) {
+        setSelectedFiles((prev) => [...prev, ...validFiles]);
+      }
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setError(null);
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      setSelectedFiles((prev) => [...prev, ...newFiles]);
+      const validFiles = newFiles.filter(validateFileType);
+      const invalidFiles = newFiles.filter((file) => !validateFileType(file));
+
+      if (invalidFiles.length > 0) {
+        setError(
+          `Some files were not added because they are not supported. Supported types: ${acceptedFileTypes.join(
+            ', '
+          )}`
+        );
+      }
+
+      if (validFiles.length > 0) {
+        setSelectedFiles((prev) => [...prev, ...validFiles]);
+      }
     }
   };
 
   const removeFile = (index: number): void => {
     setSelectedFiles((files) => files.filter((_, i) => i !== index));
+    setError(null);
   };
 
   const handleSubmit = (): void => {
+    if (!gradingCriteria?.trim()) {
+      toast.error('Please set grading criteria before uploading files');
+      return;
+    }
+
+    if (selectedFiles.length === 0) {
+      toast.error('Please select at least one file to upload');
+      return;
+    }
+
     setProcessingSubmission(true);
+    setError(null);
 
     // Simulate API call delay
     setTimeout(() => {
       onSubmit(selectedFiles, batchName);
       setProcessingSubmission(false);
     }, 1000);
+  };
+
+  const handleSelectFiles = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -109,6 +176,7 @@ export const FileUploadForm: React.FC<FileUploadFormProps> = ({
                 Accepted file types: {acceptedFileTypes.join(', ')}
               </p>
               <Input
+                ref={fileInputRef}
                 id="file-upload"
                 type="file"
                 className="hidden"
@@ -116,13 +184,27 @@ export const FileUploadForm: React.FC<FileUploadFormProps> = ({
                 multiple
                 accept={acceptedFileTypes.join(',')}
               />
-              <Label htmlFor="file-upload" asChild>
-                <Button variant="outline" size="sm" className="cursor-pointer">
-                  Select Files
-                </Button>
-              </Label>
+              <Button
+                variant="outline"
+                size="sm"
+                className="cursor-pointer"
+                onClick={handleSelectFiles}
+              >
+                Select Files
+              </Button>
             </div>
           </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                <div>
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {selectedFiles.length > 0 && (
             <div className="border rounded-lg overflow-hidden">

@@ -15,7 +15,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { toCamelCase } from '@/lib/utils';
@@ -144,8 +144,8 @@ export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a
-                      href={item.url}
+                    <Link
+                      to={item.url}
                       className="flex items-center justify-between"
                     >
                       <span className="flex items-center gap-3">
@@ -157,7 +157,7 @@ export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
                           {item.badge}
                         </Badge>
                       )}
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -174,10 +174,10 @@ export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
                 {secondaryItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <a href={item.url}>
+                      <Link to={item.url}>
                         <item.icon className="h-5 w-5" />
                         <span>{item.title}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -224,10 +224,6 @@ export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
               <DropdownMenuItem onClick={() => navigate('/dashboard/settings')}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/dashboard/settings')}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
