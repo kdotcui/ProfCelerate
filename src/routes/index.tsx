@@ -11,13 +11,13 @@ import NotFound from '../pages/NotFound';
 
 // Protected route wrapper
 import ProtectedRoute from './ProtectedRoute';
-import DashboardHome from '../pages/Dashboard/DashboardHome';
 import Settings from '../pages/Dashboard/Settings';
 import Classes from '@/pages/Dashboard/Class/Classes';
 import AssignmentPage from '@/pages/Dashboard/Assignment/assignment-page';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import AuthCallback from '@/pages/AuthCallback';
+import Dashboard from '@/pages/Dashboard/Dashboard';
 
 // Lazy-loaded pages for better performance
 const ClassPage = lazy(() => import('@/pages/Dashboard/Class/ClassPage'));
@@ -58,7 +58,7 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <DashboardHome />,
+            element: <Dashboard />,
           },
           {
             path: 'settings',

@@ -14,6 +14,10 @@ import {
   CreditCard,
   HelpCircle,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 import {
   Sidebar,
@@ -40,35 +44,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import ProfessorIcon from '@/icons/Professor';
-
-// // Additional items for secondary group
-// const secondaryItems = [
-//   {
-//     title: 'Messages',
-//     url: '/messages',
-//     icon: Mail,
-//   },
-//   {
-//     title: 'Security',
-//     url: '/security',
-//     icon: Shield,
-//   },
-//   {
-//     title: 'Billing',
-//     url: '/billing',
-//     icon: CreditCard,
-//   },
-//   {
-//     title: 'Settings',
-//     url: '/settings',
-//     icon: Settings,
-//   },
-//   {
-//     title: 'Help',
-//     url: '/help',
-//     icon: HelpCircle,
-//   },
-// ];
+import { toast } from 'sonner';
 
 interface SidebarItem {
   title: string;
@@ -82,7 +58,63 @@ interface AppSidebarProps {
   secondaryItems?: SidebarItem[];
 }
 
+interface UserProfile {
+  full_name: string;
+  institution: string;
+  department: string;
+}
+
 export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          setProfile(profile);
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        toast.error('Failed to load user data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getUser();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      toast.success('Logged out successfully!');
+      navigate('/login');
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase();
+  };
+
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
@@ -158,15 +190,23 @@ export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage
-                    src="https://github.com/shadcn.png"
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      profile?.full_name || user?.email || ''
+                    )}&background=random`}
                     alt="Profile"
                   />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarFallback>
+                    {profile?.full_name
+                      ? getInitials(profile.full_name)
+                      : user?.email?.[0].toUpperCase() || 'U'}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start text-xs">
-                  <span className="font-medium">John Doe</span>
+                  <span className="font-medium">
+                    {profile?.full_name || 'Loading...'}
+                  </span>
                   <span className="text-muted-foreground">
-                    john@example.com
+                    {user?.email || 'Loading...'}
                   </span>
                 </div>
               </Button>
@@ -174,16 +214,16 @@ export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/dashboard/settings')}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/dashboard/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
