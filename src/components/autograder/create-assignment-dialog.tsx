@@ -43,14 +43,11 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
     title: '',
     description: '',
     points: 100,
-    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
-    status: 'draft',
-    type: 'code',
+
+    type: 'pdf',
     submissions: 0,
     createdAt: new Date().toISOString(),
   });
-
-  const [dueDateOpen, setDueDateOpen] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -71,13 +68,6 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDateChange = (date: Date | undefined) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, dueDate: date.toISOString() }));
-      setDueDateOpen(false);
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
@@ -86,9 +76,7 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
       title: '',
       description: '',
       points: 100,
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'draft',
-      type: 'code',
+      type: 'pdf',
       submissions: 0,
       createdAt: new Date().toISOString(),
     });
@@ -101,7 +89,7 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
           <DialogHeader>
             <DialogTitle>Create New Assignment</DialogTitle>
             <DialogDescription>
-              Create a new assignment for students to complete.
+              You can add grading criteria after the assignment is created.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -112,7 +100,7 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                placeholder="Introduction to Variables"
+                placeholder="Title of the assignment"
                 required
               />
             </div>
@@ -151,53 +139,11 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="code">Code</SelectItem>
-                    <SelectItem value="quiz">Quiz</SelectItem>
-                    <SelectItem value="text">Text</SelectItem>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectItem value="voice">Voice</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="dueDate">Due Date</Label>
-              <Popover open={dueDateOpen} onOpenChange={setDueDateOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.dueDate ? (
-                      format(new Date(formData.dueDate), 'PPP')
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={new Date(formData.dueDate)}
-                    onSelect={handleDateChange}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => handleSelectChange('status', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <DialogFooter>

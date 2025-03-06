@@ -66,7 +66,7 @@ const ClassPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto">
       {/* Breadcrumb navigation */}
       <Breadcrumb className="mb-4">
         <BreadcrumbItem>

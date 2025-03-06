@@ -84,7 +84,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen bg-background w-full">
         {/* AppSidebar is your existing sidebar component */}
         <AppSidebar mainItems={mainItems} />
 
@@ -99,10 +99,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </header>
 
-          <div className="flex-1 p-6 overflow-auto w-full">
+          <div className="flex-1 p-6 overflow-auto ">
             {/* Use Outlet for react-router-dom nested routes or children prop */}
             {/* Checking if Outlet is available, otherwise render children */}
-            <div className="w-full h-full">
+            <div className="w-full">
               {typeof Outlet === 'function' ? (
                 <Outlet />
               ) : React.isValidElement(children) ? (

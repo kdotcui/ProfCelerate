@@ -1,25 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, Calendar, BookOpen, Clock } from 'lucide-react';
+import { Users, Calendar, BookOpen, Clock, Pencil } from 'lucide-react';
 import { ClassData } from '@/types/class';
+import { Button } from '@/components/ui/button';
+import EditClassDialog from '@/pages/Dashboard/Class/EditClassDialog';
 
 interface ClassHeaderProps {
   classData: ClassData;
 }
 
 export const ClassHeader: React.FC<ClassHeaderProps> = ({ classData }) => {
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
         return <Badge className="bg-green-500">Active</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-500">Pending</Badge>;
       case 'inactive':
         return <Badge className="bg-gray-500">Inactive</Badge>;
       default:
         return <Badge className="bg-gray-500">{status}</Badge>;
     }
+  };
+
+  const handleEditClass = (updatedClass: ClassData) => {
+    // TODO: Implement class update logic
+    console.log('Updated class:', updatedClass);
   };
 
   return (
@@ -36,15 +43,23 @@ export const ClassHeader: React.FC<ClassHeaderProps> = ({ classData }) => {
             </p>
             <p className="max-w-2xl mt-2">{classData.description}</p>
           </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setEditDialogOpen(true)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Users className="h-5 w-5 text-muted-foreground" />
             <span>
               <strong>{classData.students}</strong> students enrolled
             </span>
-          </div>
+          </div> */}
+          {/* we will add support for students enrolled later */}
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-muted-foreground" />
             <span>{classData.schedule}</span>
@@ -55,6 +70,13 @@ export const ClassHeader: React.FC<ClassHeaderProps> = ({ classData }) => {
           </div>
         </div>
       </CardContent>
+
+      <EditClassDialog
+        open={editDialogOpen}
+        setOpen={setEditDialogOpen}
+        classData={classData}
+        onSave={handleEditClass}
+      />
     </Card>
   );
 };

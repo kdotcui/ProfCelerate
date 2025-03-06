@@ -52,6 +52,7 @@ import {
   Users,
   Calendar,
   BookOpen,
+  Clock,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -60,29 +61,20 @@ import {
   BreadcrumbLink,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-
+import CreateClassDialog from './CreateClassDialog';
+import EditClassDialog from './EditClassDialog';
+import { ClassData, ClassStatus } from '@/types/class';
 // Define types
-type ClassStatus = 'active' | 'pending' | 'inactive';
+
 type Department =
+  | 'Language'
   | 'Computer Science'
   | 'Mathematics'
   | 'Physics'
   | 'Chemistry'
   | 'Biology'
   | 'Engineering'
-  | 'Language'
   | string;
-
-interface ClassData {
-  id: number;
-  title: string;
-  description: string;
-  department: Department | string;
-  code: string;
-  students: number;
-  schedule: string;
-  status: ClassStatus;
-}
 
 interface ClassFormData {
   title: string;
@@ -91,6 +83,7 @@ interface ClassFormData {
   code: string;
   schedule: string;
   status: ClassStatus;
+  term: string;
 }
 
 // Mock data for classes
@@ -103,6 +96,7 @@ const mockClasses: ClassData[] = [
     code: 'CHIN40B',
     students: 32,
     schedule: 'Mon, Wed, Fri 10:00 AM - 11:30 AM',
+    term: 'Spring 2025',
     status: 'active',
   },
   {
@@ -113,6 +107,7 @@ const mockClasses: ClassData[] = [
     code: 'CS301',
     students: 24,
     schedule: 'Tue, Thu 1:00 PM - 3:00 PM',
+    term: 'Spring 2025',
     status: 'active',
   },
   {
@@ -124,6 +119,7 @@ const mockClasses: ClassData[] = [
     code: 'CHEM240',
     students: 45,
     schedule: 'Mon, Wed 9:00 AM - 10:30 AM',
+    term: 'Spring 2025',
     status: 'active',
   },
   {
@@ -134,60 +130,40 @@ const mockClasses: ClassData[] = [
     code: 'MATH172',
     students: 36,
     schedule: 'Mon, Wed, Fri 1:00 PM - 2:00 PM',
-    status: 'pending',
+    term: 'Spring 2025',
+    status: 'active',
   },
 ];
 
 const departmentOptions: Department[] = [
+  'Language',
   'Computer Science',
   'Mathematics',
   'Physics',
   'Chemistry',
   'Biology',
   'Engineering',
-  'Language',
 ];
 
 const Classes: React.FC = () => {
   const [classes, setClasses] = useState<ClassData[]>(mockClasses);
   const [open, setOpen] = useState<boolean>(false);
+  const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
+  const [selectedClass, setSelectedClass] = useState<ClassData | null>(null);
   const [formData, setFormData] = useState<ClassFormData>({
     title: '',
     description: '',
     department: '',
     code: '',
     schedule: '',
-    status: 'pending',
+    status: 'active',
+    term: 'Spring 2025',
   });
 
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const newClass: ClassData = {
-      id: classes.length + 1,
-      ...formData,
-      students: 0,
-    };
-    setClasses([...classes, newClass]);
-    setFormData({
-      title: '',
-      description: '',
-      department: '',
-      code: '',
-      schedule: '',
-      status: 'pending',
-    });
-    setOpen(false);
+  const handleEditClass = (updatedClass: ClassData) => {
+    setClasses(
+      classes.map((c) => (c.id === updatedClass.id ? updatedClass : c))
+    );
   };
 
   const navigate = useNavigate();
@@ -199,8 +175,6 @@ const Classes: React.FC = () => {
   const getStatusBadge = (status: ClassStatus) => {
     if (status === 'active') {
       return <Badge className="bg-green-500">Active</Badge>;
-    } else if (status === 'pending') {
-      return <Badge className="bg-yellow-500">Pending</Badge>;
     } else {
       return <Badge className="bg-gray-500">Inactive</Badge>;
     }
@@ -218,129 +192,19 @@ const Classes: React.FC = () => {
             <BreadcrumbLink to="/dashboard/classes">Classes</BreadcrumbLink>
           </BreadcrumbItem>
         </Breadcrumb>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Create Class
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[550px]">
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle>Create New Class</DialogTitle>
-                <DialogDescription>
-                  Fill in the details below to create a new class.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col space-y-2">
-                    <Label htmlFor="title">Class Title</Label>
-                    <Input
-                      id="title"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      placeholder="Introduction to..."
-                      required
-                    />
-                  </div>
-                  <div className="flex flex-col space-y-2">
-                    <Label htmlFor="code">Class Code</Label>
-                    <Input
-                      id="code"
-                      name="code"
-                      value={formData.code}
-                      onChange={handleInputChange}
-                      placeholder="CS101"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="Provide a brief description of the class..."
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col space-y-2">
-                    <Label htmlFor="department">Department</Label>
-                    <Select
-                      onValueChange={(value) =>
-                        handleSelectChange('department', value)
-                      }
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departmentOptions.map((dept) => (
-                          <SelectItem key={dept} value={dept}>
-                            {dept}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex flex-col space-y-2">
-                    <Label htmlFor="schedule">Schedule</Label>
-                    <Input
-                      id="schedule"
-                      name="schedule"
-                      value={formData.schedule}
-                      onChange={handleInputChange}
-                      placeholder="Mon, Wed, Fri 10:00 AM"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    defaultValue="pending"
-                    onValueChange={(value) =>
-                      handleSelectChange('status', value as ClassStatus)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">Create Class</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <CreateClassDialog
+          open={open}
+          setOpen={setOpen}
+          classes={classes}
+          setClasses={setClasses}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {classes.map((classItem) => (
           <Card
             key={classItem.id}
-            className="overflow-hidden flex flex-col h-full"
+            className="overflow-hidden flex flex-col h-full cursor-pointer"
             onClick={() => navigateToClass(classItem.id)}
           >
             <CardHeader>
@@ -362,12 +226,12 @@ const Classes: React.FC = () => {
               </p>
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Users className="h-4 w-4" />
-                  <span>{classItem.students} students enrolled</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="h-4 w-4" />
                   <span>{classItem.schedule}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Clock className="h-4 w-4" />
+                  <span>{classItem.term}</span>
                 </div>
               </div>
             </CardContent>
@@ -378,7 +242,10 @@ const Classes: React.FC = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => navigateToClass(classItem.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigateToClass(classItem.id);
+                      }}
                     >
                       <BookOpen className="h-4 w-4" />
                     </Button>
@@ -392,7 +259,15 @@ const Classes: React.FC = () => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedClass(classItem);
+                        setEditDialogOpen(true);
+                      }}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -401,44 +276,19 @@ const Classes: React.FC = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
-              <AlertDialog>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="icon">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Delete Class</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you absolutely sure?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete
-                      the class and remove all associated data.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction className="bg-red-500 hover:bg-red-600">
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             </CardFooter>
           </Card>
         ))}
       </div>
+
+      {selectedClass && (
+        <EditClassDialog
+          open={editDialogOpen}
+          setOpen={setEditDialogOpen}
+          classData={selectedClass as ClassData}
+          onSave={handleEditClass}
+        />
+      )}
     </div>
   );
 };

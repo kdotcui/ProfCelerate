@@ -45,7 +45,7 @@ const mockClasses: ClassData[] = [
     code: 'MATH172',
     students: 36,
     schedule: 'Mon, Wed, Fri 1:00 PM - 2:00 PM',
-    status: 'pending',
+    status: 'active',
     term: 'Spring 2025',
   },
 ];
@@ -84,9 +84,7 @@ const mockAssignmentsByClass: Record<string, Assignment[]> = {
       description:
         'Learn about variables, primitive data types, and how to use them in programs.',
       points: 100,
-      dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
-      status: 'published',
-      type: 'code',
+      type: 'pdf',
       submissions: 28,
       createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
     },
@@ -96,9 +94,7 @@ const mockAssignmentsByClass: Record<string, Assignment[]> = {
       description:
         'Implement various control flow structures including if/else statements and loops.',
       points: 150,
-      dueDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(), // 12 days from now
-      status: 'published',
-      type: 'code',
+      type: 'pdf',
       submissions: 24,
       createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days ago
     },
@@ -108,9 +104,7 @@ const mockAssignmentsByClass: Record<string, Assignment[]> = {
       description:
         'Create reusable functions with different parameter types and return values.',
       points: 120,
-      dueDate: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000).toISOString(), // 18 days from now
-      status: 'draft',
-      type: 'code',
+      type: 'pdf',
       submissions: 0,
       createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
     },
@@ -122,9 +116,7 @@ const mockAssignmentsByClass: Record<string, Assignment[]> = {
       description:
         'Design and implement singly and doubly linked list data structures.',
       points: 200,
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-      status: 'published',
-      type: 'code',
+      type: 'pdf',
       submissions: 15,
       createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
     },
@@ -134,9 +126,7 @@ const mockAssignmentsByClass: Record<string, Assignment[]> = {
       description:
         'Implement and compare different tree traversal algorithms (in-order, pre-order, post-order).',
       points: 180,
-      dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day from now
-      status: 'published',
-      type: 'code',
+      type: 'pdf',
       submissions: 12,
       createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days ago
     },
@@ -148,9 +138,7 @@ const mockAssignmentsByClass: Record<string, Assignment[]> = {
       description:
         'Test your understanding of organic compound naming conventions.',
       points: 50,
-      dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-      status: 'published',
-      type: 'quiz',
+      type: 'pdf',
       submissions: 38,
       createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
     },

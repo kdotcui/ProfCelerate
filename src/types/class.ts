@@ -1,5 +1,5 @@
 // src/types/class.ts
-export type ClassStatus = 'active' | 'pending' | 'inactive';
+export type ClassStatus = 'active' | 'inactive';
 
 export interface ClassData {
   id: number;
@@ -14,16 +14,13 @@ export interface ClassData {
 }
 
 // src/types/assignment.ts
-export type AssignmentStatus = 'draft' | 'published';
-export type AssignmentType = 'code' | 'quiz' | 'text';
+export type AssignmentType = 'voice' | 'pdf';
 
 export interface Assignment {
   id: string;
   title: string;
   description: string;
   points: number;
-  dueDate: string;
-  status: AssignmentStatus;
   type: AssignmentType;
   submissions: number;
   createdAt: string;

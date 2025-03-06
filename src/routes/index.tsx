@@ -14,6 +14,7 @@ import ProtectedRoute from './ProtectedRoute';
 import DashboardHome from '../pages/Dashboard/DashboardHome';
 import Settings from '../pages/Dashboard/Settings';
 import Classes from '@/pages/Dashboard/Class/Classes';
+import AssignmentPage from '@/pages/Dashboard/Assignment/assignment-page';
 
 // Lazy-loaded pages for better performance
 const ClassPage = lazy(() => import('@/pages/Dashboard/Class/ClassPage'));
@@ -48,10 +49,10 @@ const AppRoutes: React.FC = () => {
 
               {/* Future assignment route */}
               <Route
-                path=":id/assignments/:assignmentId"
+                path=":classId/assignments/:assignmentId"
                 element={
                   <Suspense fallback={<div>Loading assignment...</div>}>
-                    <div>Assignment Page (Coming Soon)</div>
+                    <AssignmentPage />
                   </Suspense>
                 }
               />

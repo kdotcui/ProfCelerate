@@ -71,7 +71,7 @@ export const AutograderDashboard: React.FC<AutograderDashboardProps> = ({
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>Autograder</CardTitle>
-              <CardDescription>
+              <CardDescription className="mt-1">
                 Create and manage automatically graded assignments
               </CardDescription>
             </div>

@@ -64,32 +64,6 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
     );
   }
 
-  const getStatusBadge = (assignment: Assignment) => {
-    const now = new Date();
-    const dueDate = new Date(assignment.dueDate);
-
-    if (assignment.status === 'draft') {
-      return (
-        <Badge variant="outline" className="bg-gray-100">
-          Draft
-        </Badge>
-      );
-    }
-
-    if (now > dueDate) {
-      return <Badge className="bg-gray-500">Closed</Badge>;
-    }
-
-    // Check if due date is within the next 48 hours
-    const hoursDiff = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-    if (hoursDiff < 48) {
-      return <Badge className="bg-red-500">Due Soon</Badge>;
-    }
-
-    return <Badge className="bg-green-500">Open</Badge>;
-  };
-
   return (
     <div className="grid grid-cols-1 gap-4">
       {assignments.map((assignment) => (
@@ -107,18 +81,13 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
                   {assignment.description}
                 </CardDescription>
               </div>
-              <div>{getStatusBadge(assignment)}</div>
             </div>
           </CardHeader>
           <CardContent className="pb-2 flex-1">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                <span>Assigned: {formatDate(assignment.createdAt)}</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>Due: {formatDate(assignment.dueDate)}</span>
+                <span>Created: {formatDate(assignment.createdAt)}</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Users className="h-4 w-4" />
