@@ -7,10 +7,12 @@ export interface ClassData {
   description: string;
   department: string;
   code: string;
-  students: number;
   schedule: string;
+  term: string;
   status: ClassStatus;
-  term?: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // src/types/assignment.ts
