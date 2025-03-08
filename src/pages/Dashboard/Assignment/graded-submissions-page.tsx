@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, FileText, Download } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { transformToCamelCase } from '@/lib/caseConversion';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 interface GradingResult {
   question: string;
@@ -29,7 +31,6 @@ interface GradedSubmission {
   submissionId: string;
   totalPoints?: number;
   fileContent: string;
-  isBase64: boolean;
 }
 
 interface SubmissionResult {
@@ -44,6 +45,55 @@ interface SubmissionResult {
   created_at: string;
   submission_id: string;
 }
+
+const downloadFile = (submission: GradedSubmission) => {
+  try {
+    // Verify that the content is a valid base64 data URL
+    if (!submission.fileContent.startsWith('data:')) {
+      throw new Error('Invalid file content format');
+    }
+
+    // Extract the MIME type and base64 data
+    const [header, base64Data] = submission.fileContent.split(',');
+    if (!base64Data) {
+      throw new Error('Invalid base64 data format');
+    }
+
+    const mimeType =
+      header.split(':')[1]?.split(';')[0] || 'application/octet-stream';
+
+    // Convert base64 to blob
+    try {
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: mimeType });
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = submission.fileName;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
+    } catch (e) {
+      console.error('Error processing base64 data:', e);
+      throw new Error('Failed to process file data');
+    }
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    toast.error('Failed to download file. Please try again.');
+  }
+};
 
 export const GradedSubmissionsPage: React.FC = () => {
   const { classId, assignmentId, submissionId } = useParams<{
@@ -146,54 +196,6 @@ export const GradedSubmissionsPage: React.FC = () => {
     navigate(`/dashboard/classes/${classId}/assignments/${assignmentId}`);
   };
 
-  const handleDownload = (
-    fileContent: string,
-    fileName: string,
-    isBase64: boolean
-  ) => {
-    try {
-      let content: string | Uint8Array;
-      let type: string;
-
-      if (isBase64) {
-        // For base64 content (PDFs, images, etc.)
-        // Remove the data URL prefix if present
-        const base64Data = fileContent.split(',')[1] || fileContent;
-        // Convert base64 to Uint8Array for binary data
-        const binaryString = window.atob(base64Data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        content = bytes;
-        type = 'application/pdf'; // Set the correct MIME type for PDFs
-      } else {
-        // For text content
-        content = fileContent;
-        type = 'text/plain';
-      }
-
-      // Create a blob from the content
-      const blob = new Blob([content], { type });
-
-      // Create a URL for the blob
-      const url = window.URL.createObjectURL(blob);
-
-      // Create a temporary link element
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-
-      // Append to body, click, and cleanup
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading file:', error);
-    }
-  };
-
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -275,23 +277,31 @@ export const GradedSubmissionsPage: React.FC = () => {
           </div>
           <div className="space-y-2">
             {submissions.map((submission) => (
-              <Button
+              <Card
                 key={submission.id}
-                variant={
+                className={`cursor-pointer transition-colors ${
                   selectedSubmission?.id === submission.id
-                    ? 'default'
-                    : 'outline'
-                }
-                className="w-full justify-start gap-2 py-"
+                    ? 'border-primary'
+                    : ''
+                }`}
                 onClick={() => setSelectedSubmission(submission)}
               >
-                <FileText className="h-4 w-4" />
-                <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium">
-                    {submission.fileName.length > 30
-                      ? `${submission.fileName.substring(0, 30)}...`
-                      : submission.fileName}
-                  </span>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {submission.fileName}
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadFile(submission);
+                    }}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </CardHeader>
+                <CardContent>
                   <div className="text-xs text-gray-500">
                     <span>Score: {submission.totalScore}</span>
                     {submission.totalPoints && (
@@ -317,8 +327,8 @@ export const GradedSubmissionsPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                </div>
-              </Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -335,21 +345,6 @@ export const GradedSubmissionsPage: React.FC = () => {
                   >
                     {selectedSubmission.fileName}
                   </h2>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                    onClick={() =>
-                      handleDownload(
-                        selectedSubmission.fileContent,
-                        selectedSubmission.fileName,
-                        selectedSubmission.isBase64
-                      )
-                    }
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Original
-                  </Button>
                 </div>
 
                 <Badge
