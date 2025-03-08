@@ -100,27 +100,68 @@ const EditGradingCriteriaDialog: React.FC<EditGradingCriteriaDialogProps> = ({
     }
   };
 
+  const exampleCriteria = `Rubric Guidelines (Total: ${assignment.points} points)
+
+Content Understanding [40%]
+• Complete (4pts): Demonstrates thorough understanding, accurate analysis
+• Partial (2-3pts): Shows basic comprehension, some gaps present
+• Limited (0-1pts): Major misconceptions or incomplete response
+
+Organization [30%]
+• Strong (3pts): Clear structure, logical flow, well-connected ideas
+• Developing (2pts): Basic organization, some unclear transitions
+• Needs Work (0-1pts): Unclear structure, difficult to follow
+
+Evidence/Support [30%]
+• Thorough (3pts): Strong examples, relevant details
+• Basic (2pts): Some supporting evidence, needs development
+• Limited (0-1pts): Lacks sufficient support
+
+Tips:
+- Break total points into clear categories
+- Define specific criteria per level
+- Allow for partial credit
+- Include concrete examples`;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[800px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Edit Grading Criteria</DialogTitle>
             <DialogDescription>
-              Update the grading criteria for this assignment
+              Create a detailed rubric with point values for each aspect of the
+              assignment. Total points should add up to {assignment.points}.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="gradingCriteria">Grading Criteria</Label>
-              <Textarea
-                id="gradingCriteria"
-                value={gradingCriteria}
-                onChange={(e) => setGradingCriteria(e.target.value)}
-                placeholder="Describe how the assignment will be graded..."
-                required
-                className="min-h-[300px]"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="gradingCriteria">Grading Criteria</Label>
+                <Textarea
+                  id="gradingCriteria"
+                  value={gradingCriteria}
+                  onChange={(e) => setGradingCriteria(e.target.value)}
+                  placeholder="Describe how the assignment will be graded..."
+                  required
+                  className="min-h-[400px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Example Format</Label>
+                <div className="border rounded-md p-4 bg-muted/50 text-sm font-mono whitespace-pre-wrap overflow-auto max-h-[400px]">
+                  {exampleCriteria}
+                </div>
+                <div className="text-sm text-muted-foreground mt-2 space-y-2">
+                  <p className="font-medium">Best Practices:</p>
+                  <ul className="list-disc list-inside space-y-1 pl-2">
+                    <li>Use clear point breakdowns for each category</li>
+                    <li>Define specific requirements for each score level</li>
+                    <li>Include examples of what constitutes quality work</li>
+                    <li>Consider partial credit scenarios</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>

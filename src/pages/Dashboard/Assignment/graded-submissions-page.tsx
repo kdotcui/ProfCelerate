@@ -115,6 +115,7 @@ export const GradedSubmissionsPage: React.FC = () => {
             results: submission.grading_results.results,
             overallFeedback: submission.grading_results.overallFeedback,
             submissionId: submission.submission_id,
+            gradedResults: submission.grading_results,
             totalPoints,
             fileContent: submission.file_content,
             isBase64: submission.file_content.startsWith('data:'),
@@ -281,22 +282,41 @@ export const GradedSubmissionsPage: React.FC = () => {
                     ? 'default'
                     : 'outline'
                 }
-                className="w-full justify-start gap-2 py-6"
+                className="w-full justify-start gap-2 py-"
                 onClick={() => setSelectedSubmission(submission)}
               >
                 <FileText className="h-4 w-4" />
                 <div className="flex flex-col items-start">
                   <span className="text-sm font-medium">
-                    {submission.fileName}
+                    {submission.fileName.length > 30
+                      ? `${submission.fileName.substring(0, 30)}...`
+                      : submission.fileName}
                   </span>
-                  <span className="text-xs text-gray-500">
-                    Score: {submission.totalScore}
-                    {submission.totalPoints &&
-                      ` / ${submission.totalPoints} (${calculatePercentage(
-                        submission.totalScore,
-                        submission.totalPoints
-                      )}%)`}
-                  </span>
+                  <div className="text-xs text-gray-500">
+                    <span>Score: {submission.totalScore}</span>
+                    {submission.totalPoints && (
+                      <span className="ml-1">
+                        (Points: {submission.totalPoints} -
+                        <span
+                          className={
+                            calculatePercentage(
+                              submission.totalScore,
+                              submission.totalPoints
+                            ) === 100
+                              ? 'text-green-600 font-medium'
+                              : ''
+                          }
+                        >
+                          {calculatePercentage(
+                            submission.totalScore,
+                            submission.totalPoints
+                          )}
+                          %
+                        </span>
+                        )
+                      </span>
+                    )}
+                  </div>
                 </div>
               </Button>
             ))}
@@ -309,7 +329,10 @@ export const GradedSubmissionsPage: React.FC = () => {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-2xl font-bold">
+                  <h2
+                    className="text-2xl font-bold max-w-[400px] truncate"
+                    title={selectedSubmission.fileName}
+                  >
                     {selectedSubmission.fileName}
                   </h2>
                   <Button
@@ -328,6 +351,7 @@ export const GradedSubmissionsPage: React.FC = () => {
                     Download Original
                   </Button>
                 </div>
+
                 <Badge
                   variant={
                     calculatePercentage(
@@ -337,8 +361,16 @@ export const GradedSubmissionsPage: React.FC = () => {
                       ? 'default'
                       : 'destructive'
                   }
+                  className={
+                    calculatePercentage(
+                      selectedSubmission.totalScore,
+                      selectedSubmission.totalPoints
+                    ) === 100
+                      ? 'bg-green-500 hover:bg-green-600'
+                      : ''
+                  }
                 >
-                  Score: {selectedSubmission.totalScore}
+                  {selectedSubmission.totalScore}
                   {selectedSubmission.totalPoints &&
                     ` / ${
                       selectedSubmission.totalPoints
@@ -364,25 +396,7 @@ export const GradedSubmissionsPage: React.FC = () => {
                       <div key={index} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">{result.question}</h4>
-                          <Badge
-                            variant={
-                              calculatePercentage(
-                                result.score,
-                                selectedSubmission.totalPoints
-                              ) >= 70
-                                ? 'default'
-                                : 'destructive'
-                            }
-                          >
-                            {result.score}
-                            {selectedSubmission.totalPoints &&
-                              ` / ${
-                                selectedSubmission.totalPoints
-                              } (${calculatePercentage(
-                                result.score,
-                                selectedSubmission.totalPoints
-                              )}%)`}
-                          </Badge>
+                          <Badge variant="secondary">{result.score}</Badge>
                         </div>
                         <p className="text-gray-600 mb-2">{result.feedback}</p>
                         {result.mistakes.length > 0 && (

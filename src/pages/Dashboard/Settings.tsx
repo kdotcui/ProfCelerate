@@ -59,6 +59,8 @@ export default function Settings() {
             .eq('user_id', user.id)
             .single();
 
+          console.log('profile ', profile);
+
           if (profile) {
             // Transform the profile data from snake_case to camelCase
             const transformedProfile = transformToCamelCase<Profile>(profile);
@@ -80,6 +82,21 @@ export default function Settings() {
 
     getUser();
   }, []);
+
+  useEffect(() => {
+    // Only make the API call if we have a valid user ID
+    if (user?.id) {
+      const backend = import.meta.env.VITE_BACKEND_URL;
+      fetch(`${backend}/api/profile/${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log('Backend profile response:', data);
+        })
+        .catch((error) => {
+          console.error('Error fetching profile from backend:', error);
+        });
+    }
+  }, [user]); // Only re-run when user changes
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
