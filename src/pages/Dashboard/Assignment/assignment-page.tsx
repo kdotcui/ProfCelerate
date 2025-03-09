@@ -16,7 +16,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, FileUp, RefreshCw } from 'lucide-react';
+import {
+  ChevronLeft,
+  FileUp,
+  RefreshCw,
+  MoreVertical,
+  Settings,
+  Trash2,
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import {
@@ -24,6 +31,27 @@ import {
   transformToSnakeCase,
 } from '@/lib/caseConversion';
 import { gradeSubmission } from '@/services/autograder';
+import {
+  deleteAssignment,
+  deleteSubmissionBatch,
+} from '@/lib/deleteOperations';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // Import components
 import { AssignmentDetails } from './assignment-details';
@@ -61,6 +89,13 @@ const AssignmentPage: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [showUploadForm, setShowUploadForm] = useState<boolean>(false);
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
+  const [showDeleteSubmissionAlert, setShowDeleteSubmissionAlert] =
+    useState(false);
+  const [submissionToDelete, setSubmissionToDelete] = useState<string | null>(
+    null
+  );
+  const [showDeleteAssignmentAlert, setShowDeleteAssignmentAlert] =
+    useState(false);
 
   const fetchAssignmentData = async () => {
     try {
@@ -261,6 +296,34 @@ const AssignmentPage: React.FC = () => {
     setAssignment(transformedAssignment);
   };
 
+  const handleDeleteAssignment = async () => {
+    if (!assignmentId) return;
+
+    try {
+      await deleteAssignment(assignmentId);
+      toast.success('Assignment deleted successfully');
+      setShowDeleteAssignmentAlert(false);
+      navigate(`/dashboard/classes/${classId}`);
+    } catch (error: any) {
+      console.error('Error deleting assignment:', error);
+      toast.error(error.message || 'Failed to delete assignment');
+    }
+  };
+
+  const handleDeleteSubmission = async (submissionId: string) => {
+    try {
+      await deleteSubmissionBatch(submissionId);
+      toast.success('Submission deleted successfully');
+      // Update the submissions list
+      setSubmissions(submissions.filter((sub) => sub.id !== submissionId));
+      setShowDeleteSubmissionAlert(false);
+      setSubmissionToDelete(null);
+    } catch (error: any) {
+      console.error('Error deleting submission:', error);
+      toast.error(error.message || 'Failed to delete submission');
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -311,24 +374,45 @@ const AssignmentPage: React.FC = () => {
         </Breadcrumb>
 
         <div className="flex justify-between items-center mt-4">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back to Class
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw
-              className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`}
-            />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleBack}>
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Back to Class
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={refreshing}
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`}
+              />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Edit Assignment
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setShowDeleteAssignmentAlert(true)}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Assignment
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
@@ -341,15 +425,6 @@ const AssignmentPage: React.FC = () => {
                 <h2 className="text-2xl font-bold">{assignment.title}</h2>
               </div>
               <CardDescription>{assignment.description}</CardDescription>
-            </div>
-            <div>
-              <Button
-                className="flex items-center gap-2"
-                onClick={() => setShowEditDialog(true)}
-              >
-                <FileUp className="h-4 w-4" />
-                Edit Assignment
-              </Button>
             </div>
           </div>
         </CardHeader>
@@ -381,6 +456,11 @@ const AssignmentPage: React.FC = () => {
             onUpload={() => setShowUploadForm(true)}
             classId={classId!}
             assignmentId={assignmentId!}
+            onSubmissionDeleted={(submissionId) =>
+              setSubmissions(
+                submissions.filter((sub) => sub.id !== submissionId)
+              )
+            }
           />
         </TabsContent>
       </Tabs>
@@ -406,6 +486,63 @@ const AssignmentPage: React.FC = () => {
           onAssignmentUpdated={handleAssignmentUpdated}
         />
       )}
+
+      {/* Delete Submission Alert Dialog */}
+      <AlertDialog
+        open={showDeleteSubmissionAlert}
+        onOpenChange={(open) => {
+          setShowDeleteSubmissionAlert(open);
+          if (!open) setSubmissionToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Submission?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this submission and all its results.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                if (submissionToDelete) {
+                  handleDeleteSubmission(submissionToDelete);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Assignment Alert Dialog */}
+      <AlertDialog
+        open={showDeleteAssignmentAlert}
+        onOpenChange={setShowDeleteAssignmentAlert}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Assignment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this assignment and all its
+              submissions and results. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={handleDeleteAssignment}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

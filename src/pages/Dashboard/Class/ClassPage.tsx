@@ -26,6 +26,7 @@ import {
   FileText,
   MoreVertical,
   PlusCircle,
+  Trash2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -42,6 +43,17 @@ import { toast } from 'sonner';
 import EditClassDialog from './EditClassDialog';
 import { ClassHeader } from '@/components/class/class-header';
 import { CreateAssignmentDialog } from '@/components/autograder/create-assignment-dialog';
+import { deleteClass } from '@/lib/deleteOperations';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function ClassPage() {
   const { id } = useParams<{ id: string }>();
@@ -52,6 +64,7 @@ export default function ClassPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [createAssignmentDialogOpen, setCreateAssignmentDialogOpen] =
     useState(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -123,20 +136,12 @@ export default function ClassPage() {
   };
 
   const handleDeleteClass = async () => {
-    if (
-      !classData ||
-      !window.confirm('Are you sure you want to delete this class?')
-    )
-      return;
+    if (!classData) return;
 
     try {
-      const { error } = await supabase
-        .from('classes')
-        .delete()
-        .eq('id', classData.id);
-
-      if (error) throw error;
+      await deleteClass(classData.id);
       toast.success('Class deleted successfully');
+      setShowDeleteAlert(false);
       navigate('/dashboard/classes');
     } catch (error: any) {
       console.error('Error deleting class:', error);
@@ -183,12 +188,13 @@ export default function ClassPage() {
         </Breadcrumb>
 
         <div className="flex items-center gap-2">
-          <CreateAssignmentDialog
-            open={createAssignmentDialogOpen}
-            onOpenChange={setCreateAssignmentDialogOpen}
-            classId={parseInt(id || '0')}
-            onAssignmentCreated={handleAssignmentCreated}
-          />
+          <Button
+            variant="outline"
+            onClick={() => setCreateAssignmentDialogOpen(true)}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Create Assignment
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
@@ -207,9 +213,10 @@ export default function ClassPage() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-red-600"
-                onClick={handleDeleteClass}
+                onClick={() => setShowDeleteAlert(true)}
+                className="text-red-600 focus:text-red-600"
               >
+                <Trash2 className="h-4 w-4 mr-2" />
                 Delete Class
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -223,8 +230,16 @@ export default function ClassPage() {
 
         {/* Assignments Section */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Assignments</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCreateAssignmentDialogOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add Assignment
+            </Button>
           </CardHeader>
           <CardContent>
             {assignments.length === 0 ? (
@@ -245,21 +260,25 @@ export default function ClassPage() {
                   <Card
                     key={assignment.id}
                     className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() =>
-                      navigate(
-                        `/dashboard/classes/${id}/assignments/${assignment.id}`
-                      )
-                    }
                   >
                     <CardHeader>
                       <div className="flex justify-between items-start">
-                        <div>
+                        <div
+                          className="flex-1"
+                          onClick={() =>
+                            navigate(
+                              `/dashboard/classes/${id}/assignments/${assignment.id}`
+                            )
+                          }
+                        >
                           <CardTitle>{assignment.title}</CardTitle>
                           <CardDescription>
                             {assignment.description}
                           </CardDescription>
                         </div>
-                        <Badge>{assignment.type}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge>{assignment.type}</Badge>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -281,6 +300,35 @@ export default function ClassPage() {
         classData={classData}
         onClassUpdated={handleClassUpdate}
       />
+
+      <CreateAssignmentDialog
+        open={createAssignmentDialogOpen}
+        onOpenChange={setCreateAssignmentDialogOpen}
+        classId={id!}
+        onAssignmentCreated={handleAssignmentCreated}
+      />
+
+      {/* Delete Alert Dialog */}
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Class?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this class and all its assignments,
+              submissions, and results. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={handleDeleteClass}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

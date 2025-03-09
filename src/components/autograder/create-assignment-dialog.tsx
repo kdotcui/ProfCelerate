@@ -28,7 +28,7 @@ import { transformToSnakeCase } from '@/lib/caseConversion';
 interface CreateAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  classId: number;
+  classId: string | number;
   onAssignmentCreated: (assignment: Assignment) => void;
 }
 
@@ -45,7 +45,7 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
     description: string;
     points: number;
     type: AssignmentType;
-    classId: number;
+    classId: string | number;
   }>({
     title: '',
     description: '',
