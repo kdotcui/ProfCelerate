@@ -11,7 +11,7 @@ export const Features = () => {
           <span className="block">Grading is tedious.</span>
           <span className="block">Let us help.</span>
         </h1>
-        <h2 className="text-gray-400 text-xl max-w-md leading-relaxed ">
+        <h2 className="text-gray-500 text-xl max-w-md leading-relaxed ">
           Easy-to-use assignment grader. Handles text and audio seamlessly, with flexibile AI models. All in one place.
         </h2>
         <div className="flex w-full max-w-lg items-center space-x-1 mt-4">

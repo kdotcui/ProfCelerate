@@ -36,9 +36,9 @@ export const NavigationBar = () => {
           </div>
 
           <div className="hidden md:flex gap-2">
-            <Link to="/signin" className={`text-large ${buttonVariants({ variant: "secondary" })}`}>
+            <Link to="/login" className={`text-large ${buttonVariants({ variant: "secondary" })}`}>
               <User />
-              Sign In
+              Login
             </Link>
           </div>
 

@@ -12,16 +12,16 @@ interface FAQItem {
 
 const faqData: FAQItem[] = [
   {
-    question: "Example1 Question How is this done?",
-    answer: "Yes. Example Question How is this done?Example Question How is this done?"
+    question: "What kind of submission files are accepted?",
+    answer: "We accept PDF, TXT, and JSON files. We are working to expand to audio and code file support in the future!"
   },
   {
-    question: "Example2 Question How is this done?",
-    answer: "Yes. Example Question How is this done?Example Question How is this done?"
+    question: "What are the use cases for ProfCelerate?",
+    answer: "ProfCelerate was originally designed to help our Chinese professor with their repetitive grading tasks. What used to take them 2-3 hours, now takes them 10 minutes. Graders can define their own grading criterias, allowing us to handle a wide variety of assignemnts."
   },
   {
-    question: "Example3 Question How is this done?",
-    answer: "Yes. Example Question How is this done?Example Question How is this done?"
+    question: "How is the homework graded?",
+    answer: "We use cutting-edge AI models to grade the homework. We currently use Mistral and DeekSeek R1 models, considered the best in the industry."
   },
 ]
 
