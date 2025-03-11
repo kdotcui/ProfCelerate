@@ -54,6 +54,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import PageHeader from '@/components/ui/PageHeader';
 
 export default function ClassPage() {
   const { id } = useParams<{ id: string }>();
@@ -169,60 +170,57 @@ export default function ClassPage() {
   }
 
   return (
-    <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <Breadcrumb>
-          <BreadcrumbItem>
-            <BreadcrumbLink to="/dashboard">Dashboard</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink to="/dashboard/classes">Classes</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink to={`/dashboard/classes/${id}`}>
-              {classData.title}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setCreateAssignmentDialogOpen(true)}
-          >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Create Assignment
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                <Settings className="h-4 w-4 mr-2" />
-                Edit Class
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleStatusToggle}>
-                <Calendar className="h-4 w-4 mr-2" />
-                {classData.status === 'active' ? 'Deactivate' : 'Activate'}{' '}
-                Class
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => setShowDeleteAlert(true)}
-                className="text-red-600 focus:text-red-600"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Class
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+    <div className="container mx-auto p-6">
+      <PageHeader
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Classes', href: '/dashboard/classes' },
+          {
+            label: classData.title,
+            href: `/dashboard/classes/${id}`,
+            isCurrent: true,
+          },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCreateAssignmentDialogOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Create Assignment
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Edit Class
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleStatusToggle}>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {classData.status === 'active'
+                    ? 'Deactivate'
+                    : 'Activate'}{' '}
+                  Class
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setShowDeleteAlert(true)}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Class
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        }
+      />
 
       <div className="grid gap-6">
         {/* Class Info Card */}

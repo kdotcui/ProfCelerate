@@ -68,6 +68,10 @@ const EditGradingCriteriaDialog: React.FC<EditGradingCriteriaDialogProps> = ({
   const [gradingCriteria, setGradingCriteria] = useState(
     assignment.gradingCriteria
   );
+  const [activeTab, setActiveTab] = useState<'editor' | 'help'>('editor');
+  const [helpSection, setHelpSection] = useState<
+    'guidelines' | 'example' | 'practices'
+  >('guidelines');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,80 +104,327 @@ const EditGradingCriteriaDialog: React.FC<EditGradingCriteriaDialogProps> = ({
     }
   };
 
-  const exampleCriteria = `Rubric Guidelines (Total: ${assignment.points} points)
-
-Content Understanding [40%]
-• Complete (4pts): Demonstrates thorough understanding, accurate analysis
-• Partial (2-3pts): Shows basic comprehension, some gaps present
-• Limited (0-1pts): Major misconceptions or incomplete response
-
-Organization [30%]
-• Strong (3pts): Clear structure, logical flow, well-connected ideas
-• Developing (2pts): Basic organization, some unclear transitions
-• Needs Work (0-1pts): Unclear structure, difficult to follow
-
-Evidence/Support [30%]
-• Thorough (3pts): Strong examples, relevant details
-• Basic (2pts): Some supporting evidence, needs development
-• Limited (0-1pts): Lacks sufficient support
-
-Tips:
-- Break total points into clear categories
-- Define specific criteria per level
-- Allow for partial credit
-- Include concrete examples`;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
+      <DialogContent className="sm:max-w-[650px] h-[85vh] overflow-hidden p-0">
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+          <DialogHeader className="px-6 pt-6 pb-2">
             <DialogTitle>Edit Grading Criteria</DialogTitle>
-            <DialogDescription>
-              Create a detailed rubric with point values for each aspect of the
-              assignment. Total points should add up to {assignment.points}.
+            <DialogDescription className="text-sm">
+              Define how the assignment will be graded by the AI system.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="gradingCriteria">Grading Criteria</Label>
+
+          <div className="flex border-b">
+            <button
+              type="button"
+              className={`px-4 py-2 text-sm font-medium ${
+                activeTab === 'editor'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-muted-foreground'
+              }`}
+              onClick={() => setActiveTab('editor')}
+            >
+              Criteria Editor
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 text-sm font-medium ${
+                activeTab === 'help'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-muted-foreground'
+              }`}
+              onClick={() => setActiveTab('help')}
+            >
+              Guidelines & Examples
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {activeTab === 'editor' ? (
+              <div className="p-6">
+                <Label
+                  htmlFor="gradingCriteria"
+                  className="text-sm font-medium"
+                >
+                  Grading Criteria
+                </Label>
                 <Textarea
                   id="gradingCriteria"
                   value={gradingCriteria}
                   onChange={(e) => setGradingCriteria(e.target.value)}
                   placeholder="Describe how the assignment will be graded..."
                   required
-                  className="min-h-[400px]"
+                  className="mt-2 min-h-[350px] resize-none"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Example Format</Label>
-                <div className="border rounded-md p-4 bg-muted/50 text-sm font-mono whitespace-pre-wrap overflow-auto max-h-[400px]">
-                  {exampleCriteria}
+            ) : (
+              <div className="p-6">
+                <div className="flex space-x-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setHelpSection('guidelines')}
+                    className={`flex-1 py-2 px-3 text-sm rounded-md transition-colors ${
+                      helpSection === 'guidelines'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    Guidelines
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHelpSection('example')}
+                    className={`flex-1 py-2 px-3 text-sm rounded-md transition-colors ${
+                      helpSection === 'example'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    Example
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHelpSection('practices')}
+                    className={`flex-1 py-2 px-3 text-sm rounded-md transition-colors ${
+                      helpSection === 'practices'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    Best Practices
+                  </button>
                 </div>
-                <div className="text-sm text-muted-foreground mt-2 space-y-2">
-                  <p className="font-medium">Best Practices:</p>
-                  <ul className="list-disc list-inside space-y-1 pl-2">
-                    <li>Use clear point breakdowns for each category</li>
-                    <li>Define specific requirements for each score level</li>
-                    <li>Include examples of what constitutes quality work</li>
-                    <li>Consider partial credit scenarios</li>
-                  </ul>
-                </div>
+
+                {helpSection === 'guidelines' && (
+                  <div className="bg-card rounded-lg border shadow-sm p-4 overflow-auto max-h-[400px]">
+                    <h3 className="text-base font-medium mb-3 sticky top-0 bg-card pt-1 pb-2 border-b z-10">
+                      AI-Based Grading Guidelines
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                          <span className="font-semibold text-sm">1</span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm">
+                            Structure your rubric with clear point allocations
+                          </h4>
+                          <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
+                            <li className="flex items-start gap-2">
+                              <span className="text-primary">•</span>
+                              <span>
+                                Format each question with point value in
+                                brackets [X points]
+                              </span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-primary">•</span>
+                              <span>
+                                Define criteria for full, partial, and no credit
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                          <span className="font-semibold text-sm">2</span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm">
+                            Specify evaluation standards
+                          </h4>
+                          <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
+                            <li className="flex items-start gap-2">
+                              <span className="text-primary">•</span>
+                              <span>Clearly define correct answers</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-primary">•</span>
+                              <span>Detail mistakes and point deductions</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                          <span className="font-semibold text-sm">3</span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm">
+                            Our AI will provide
+                          </h4>
+                          <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
+                            <li className="flex items-start gap-2">
+                              <span className="text-primary">•</span>
+                              <span>Precise identification of errors</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-primary">•</span>
+                              <span>
+                                Transparent point allocation with justification
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {helpSection === 'example' && (
+                  <div className="bg-card rounded-lg border shadow-sm p-4 overflow-auto max-h-[420px]">
+                    <h3 className="text-base font-medium mb-3 sticky top-0 bg-card pt-1 pb-2 border-b z-10">
+                      Example Rubric
+                    </h3>
+
+                    <div className="bg-muted/30 rounded-md p-3 border">
+                      <div className="font-medium text-sm mb-2">
+                        Question 1: Define polymorphism [10 points]
+                      </div>
+                      <div className="pl-3 space-y-2">
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[80px] text-sm font-medium text-green-600">
+                            Full [10]:
+                          </div>
+                          <div className="text-xs">
+                            Correct definition with 2+ examples
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[80px] text-sm font-medium text-amber-600">
+                            Partial [7]:
+                          </div>
+                          <div className="text-xs">
+                            Correct definition, one example
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[80px] text-sm font-medium text-amber-600">
+                            Partial [5]:
+                          </div>
+                          <div className="text-xs">
+                            Basic understanding shown
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[80px] text-sm font-medium text-amber-600">
+                            Partial [3]:
+                          </div>
+                          <div className="text-xs">
+                            Attempts with misconceptions
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[80px] text-sm font-medium text-red-600">
+                            No credit [0]:
+                          </div>
+                          <div className="text-xs">Incorrect or no answer</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-muted/30 rounded-md p-3 border mt-3">
+                      <div className="font-medium text-sm mb-2">
+                        Question 2: Write a function to find max value [15
+                        points]
+                      </div>
+                      <div className="pl-3 space-y-2">
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[80px] text-sm font-medium text-green-600">
+                            Full [15]:
+                          </div>
+                          <div className="text-xs">
+                            Works for all inputs including edge cases
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[80px] text-sm font-medium text-amber-600">
+                            Deduct [3]:
+                          </div>
+                          <div className="text-xs">
+                            Fails on edge cases but works for standard inputs
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[80px] text-sm font-medium text-amber-600">
+                            Deduct [5]:
+                          </div>
+                          <div className="text-xs">Minor logical errors</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {helpSection === 'practices' && (
+                  <div className="bg-card rounded-lg border shadow-sm p-4 overflow-auto max-h-[400px]">
+                    <h3 className="text-base font-medium mb-3 sticky top-0 bg-card pt-1 pb-2 border-b z-10">
+                      Best Practices
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="bg-muted/30 rounded-md p-3 border">
+                        <div className="font-medium text-sm mb-1 text-primary">
+                          Clear Point Structure
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Break down points for each category with specific
+                          allocations for different levels of performance.
+                        </p>
+                      </div>
+
+                      <div className="bg-muted/30 rounded-md p-3 border">
+                        <div className="font-medium text-sm mb-1 text-primary">
+                          Specific Requirements
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Define exactly what students need to demonstrate for
+                          each score level.
+                        </p>
+                      </div>
+
+                      <div className="bg-muted/30 rounded-md p-3 border">
+                        <div className="font-medium text-sm mb-1 text-primary">
+                          Quality Examples
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Include examples of what constitutes quality work to
+                          guide the AI grader.
+                        </p>
+                      </div>
+
+                      <div className="bg-muted/30 rounded-md p-3 border">
+                        <div className="font-medium text-sm mb-1 text-primary">
+                          Partial Credit
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Consider scenarios where partial credit should be
+                          awarded and specify the criteria.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="px-6 py-4 border-t">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              size="sm"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Updating...' : 'Update Criteria'}
+            <Button type="submit" disabled={loading} size="sm">
+              {loading ? 'Updating...' : 'Update'}
             </Button>
           </DialogFooter>
         </form>
@@ -253,9 +504,7 @@ export const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
             <div className="flex items-start gap-2">
               <Upload className="h-5 w-5 text-gray-500 mt-0.5" />
               <div>
-                <p className="text-sm text-gray-500">
-                  {assignment.type === 'voice' ? 'Audio' : 'PDF'}
-                </p>
+                <p className="text-sm text-gray-500">{assignment.type}</p>
               </div>
             </div>
           </div>

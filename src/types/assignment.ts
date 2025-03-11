@@ -1,4 +1,4 @@
-export type AssignmentType = 'voice' | 'pdf';
+export type AssignmentType = 'voice' | 'pdf' | 'quiz-json';
 
 export interface Assignment {
   id: number;

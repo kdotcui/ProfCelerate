@@ -52,6 +52,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import PageHeader from '@/components/ui/PageHeader';
 
 // Import components
 import { AssignmentDetails } from './assignment-details';
@@ -350,37 +351,20 @@ const AssignmentPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      {/* Breadcrumb navigation */}
-      <div className="mb-6">
-        <Breadcrumb>
-          <BreadcrumbItem>
-            <BreadcrumbLink to="/dashboard">Dashboard</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink to="/dashboard/classes">Classes</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink to={`/dashboard/classes/${classId}`}>
-              Class
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink to="#">{assignment.title}</BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
-
-        <div className="flex justify-between items-center mt-4">
+    <div className="container p-6 mx-auto">
+      <PageHeader
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Classes', href: '/dashboard/classes' },
+          { label: 'Class', href: `/dashboard/classes/${classId}` },
+          { label: assignment.title, href: '#', isCurrent: true },
+        ]}
+        actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={handleBack}>
               <ChevronLeft className="h-4 w-4 mr-2" />
               Back to Class
             </Button>
-          </div>
-          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="icon"
@@ -413,8 +397,8 @@ const AssignmentPage: React.FC = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Assignment header */}
       <Card className="mb-6">
@@ -469,11 +453,16 @@ const AssignmentPage: React.FC = () => {
       {showUploadForm && (
         <FileUploadForm
           acceptedFileTypes={
-            assignment.type === 'voice' ? ['audio/*'] : ['application/pdf']
+            assignment.type === 'voice'
+              ? ['audio/*']
+              : assignment.type === 'quiz-json'
+              ? ['.json', 'application/json']
+              : ['application/pdf']
           }
           onClose={() => setShowUploadForm(false)}
           onSubmit={handleSubmitFiles}
           gradingCriteria={assignment.gradingCriteria}
+          isQuizJson={assignment.type === 'quiz-json'}
         />
       )}
 

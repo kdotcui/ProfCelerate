@@ -99,7 +99,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </header>
 
-          <div className="flex-1 p-6 overflow-auto ">
+          <div className="flex-1 p-3 overflow-auto ">
             {/* Use Outlet for react-router-dom nested routes or children prop */}
             {/* Checking if Outlet is available, otherwise render children */}
             <div className="w-full">

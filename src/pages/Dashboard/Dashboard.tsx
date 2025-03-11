@@ -10,12 +10,6 @@ import {
 } from '@/components/ui/card';
 import { toast } from 'sonner';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import {
   BookOpen,
   FileCheck,
   Clock,
@@ -27,6 +21,7 @@ import {
 import { useEffect, useState } from 'react';
 import { ClassData } from '@/types/class';
 import { Assignment } from '@/types/assignment';
+import PageHeader from '@/components/ui/PageHeader';
 
 interface DashboardStats {
   totalClasses: number;
@@ -36,6 +31,7 @@ interface DashboardStats {
     title: string;
     type: string;
     createdAt: string;
+    classId: string;
   }[];
   recentClasses: {
     id: number;
@@ -99,6 +95,7 @@ export default function Dashboard() {
           title: assignment.title,
           type: assignment.type,
           createdAt: assignment.created_at,
+          classId: assignment.class_id,
         })) || [];
 
       // Get recent classes with their last modification time
@@ -191,21 +188,21 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <Breadcrumb className="mb-4">
-          <BreadcrumbItem>
-            <BreadcrumbLink to="/dashboard">Dashboard</BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
-        <Button
-          onClick={() => navigate('/dashboard/classes')}
-          className="flex items-center gap-2"
-        >
-          <PlusCircle className="h-4 w-4" />
-          New Class
-        </Button>
-      </div>
+    <div className="container p-6 mx-auto">
+      <PageHeader
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard', isCurrent: true },
+        ]}
+        actions={
+          <Button
+            onClick={() => navigate('/dashboard/classes')}
+            className="flex items-center gap-2"
+          >
+            <PlusCircle className="h-4 w-4" />
+            New Class
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Quick Actions Card */}
@@ -270,11 +267,22 @@ export default function Dashboard() {
                     <div
                       key={activity.id}
                       className="flex items-center justify-between text-sm cursor-pointer hover:text-primary hover:bg-muted/50 p-2 rounded-md transition-colors"
-                      onClick={() =>
-                        navigate(`/dashboard/classes/${activity.id}`)
-                      }
+                      onClick={() => {
+                        if (activity.classId) {
+                          navigate(
+                            `/dashboard/classes/${activity.classId}/assignments/${activity.id}`
+                          );
+                        } else {
+                          toast.error(
+                            'Cannot navigate to assignment: missing class information'
+                          );
+                        }
+                      }}
                     >
-                      <span className="font-medium">{activity.title}</span>
+                      <div className="flex items-center gap-2">
+                        <FileCheck className="h-4 w-4 text-primary" />
+                        <span className="font-medium">{activity.title}</span>
+                      </div>
                       <span className="text-muted-foreground">
                         {new Date(activity.createdAt).toLocaleDateString()}
                       </span>

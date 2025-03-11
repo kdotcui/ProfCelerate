@@ -175,7 +175,8 @@ export const EditAssignmentDialog: React.FC<EditAssignmentDialogProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="voice">Voice</SelectItem>
+                    {/* <SelectItem value="voice">Voice</SelectItem> */}
+                    <SelectItem value="quiz-json">Quiz JSON</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

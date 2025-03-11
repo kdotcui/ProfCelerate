@@ -116,10 +116,6 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
 
   return (
     <>
-      <Button onClick={() => onOpenChange(true)}>
-        <PlusCircle className="h-4 w-4 mr-2" />
-        Create Assignment
-      </Button>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[550px]">
           <form onSubmit={handleSubmit}>
@@ -177,7 +173,8 @@ export const CreateAssignmentDialog: React.FC<CreateAssignmentDialogProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pdf">PDF</SelectItem>
-                      <SelectItem value="voice">Voice</SelectItem>
+                      {/* <SelectItem value="voice">Voice</SelectItem> */}
+                      <SelectItem value="quiz-json">Quiz JSON</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

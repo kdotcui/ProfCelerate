@@ -16,17 +16,12 @@ import {
 } from '@/components/ui/tooltip';
 import { PlusCircle, Calendar, BookOpen, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import CreateClassDialog from './CreateClassDialog';
 import { ClassData, ClassStatus } from '@/types/class';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import EditClassDialog from './EditClassDialog';
+import PageHeader from '@/components/ui/PageHeader';
 
 export default function Classes() {
   const [classes, setClasses] = useState<ClassData[]>([]);
@@ -94,23 +89,20 @@ export default function Classes() {
   }
 
   return (
-    <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <Breadcrumb className="mb-4">
-          <BreadcrumbItem>
-            <BreadcrumbLink to="/dashboard">Dashboard</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink to="/dashboard/classes">Classes</BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
-        <CreateClassDialog
-          open={open}
-          setOpen={setOpen}
-          onClassCreated={(newClass) => setClasses([newClass, ...classes])}
-        />
-      </div>
+    <div className="container mx-auto p-6">
+      <PageHeader
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Classes', href: '/dashboard/classes', isCurrent: true },
+        ]}
+        actions={
+          <CreateClassDialog
+            open={open}
+            setOpen={setOpen}
+            onClassCreated={(newClass) => setClasses([newClass, ...classes])}
+          />
+        }
+      />
 
       {classes.length === 0 ? (
         <div className="text-center py-12">
