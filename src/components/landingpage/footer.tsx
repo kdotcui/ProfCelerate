@@ -13,7 +13,7 @@ export const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <h3 className="text-xl font-bold">ProfCelerate</h3>
-            <p className="text-slate-400 text-wrap">A modern-day grading tool so you spend more time teaching, not grading.</p>
+            <p className="text-slate-400 text-wrap">A modern-day grading tool so you can spend more time teaching, not grading.</p>
             <div className="flex justify-center space-x-4">
               <Button variant="ghost" size="icon" className="rounded-full hover:text-white hover:bg-slate-800">
                 <a href="https://www.linkedin.com/in/jiahaoli0465/" target="_blank"><Linkedin size={20}/></a>
