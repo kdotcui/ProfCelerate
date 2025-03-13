@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { buttonVariants } from "../ui/button";
-import { User as UserIcon, Menu, Code } from "lucide-react";
+import { User as UserIcon, Menu} from "lucide-react";
 import { Link } from "react-router-dom";
 import ProfessorIcon from "@/icons/Professor";
 import { supabase } from "@/lib/supabase";
@@ -20,9 +20,16 @@ import { useState, useEffect } from "react";
 import { User } from '@supabase/supabase-js';
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { toCamelCase } from '@/lib/utils';
+
+interface UserProfile {
+  userId: string;
+  fullName: string;
+}
 
 export const NavigationBar = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -31,17 +38,24 @@ export const NavigationBar = () => {
       try {
         setLoading(true); // Set loading to true at start
         const { data: { user } } = await supabase.auth.getUser()
+        console.log(`User`,user)
+        setCurrentUser(user);
         if (user) {
-          console.log(`User successfully retrieved`)
-          console.log(user)
-          setCurrentUser(user);
-        } else {
-          console.log("User cannot be retrieved")
-          setCurrentUser(null);
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          console.log('profile', profileData);
+          if (profileData) {
+            setProfile(toCamelCase(profileData));
+          }
         }
       } catch (error) {
-        console.error("Error fetching user:", error);
         setCurrentUser(null);
+        console.error("Error fetching user:", error);
+        toast.error('Failed to load user data');
       } finally {
         setLoading(false); // Set loading to false when done
       }
@@ -103,8 +117,8 @@ export const NavigationBar = () => {
                 
                 <DropdownMenuTrigger className={`text-large ${buttonVariants({ variant: "secondary" })}`}>
                   <UserIcon />
-                  Hello {currentUser.email}
-                  </DropdownMenuTrigger>
+                  Hello {profile?.fullName?.split(" ")[0] || currentUser?.email}
+                </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
