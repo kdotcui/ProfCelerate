@@ -5,11 +5,11 @@ import { createBrowserRouter } from 'react-router-dom';
 import Layout from './Layout';
 
 // Pages
-import Home from '../pages/Home';
-import About from '../pages/About';
+import Home from '../pages/LandingPage/Home';
+import About from '../pages/LandingPage/About';
 import NotFound from '../pages/NotFound';
-import TermsAgreement from '../pages/TermsAgreement';
-import PrivacyPolicy from '../pages/PrivacyPolicy';
+import TermsAgreement from '../pages/LandingPage/TermsAgreement';
+import PrivacyPolicy from '../pages/LandingPage/PrivacyPolicy';
 
 // Protected route wrapper
 import ProtectedRoute from './ProtectedRoute';
