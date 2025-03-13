@@ -24,7 +24,7 @@ export const Footer = () => {
                   <Linkedin size={20}/>
                 </a>
               </Button>
-              <Button variant="ghost" size="icon" className="rounded-full hover:text-white hover:bg-slate-800">
+              {/* <Button variant="ghost" size="icon" className="rounded-full hover:text-white hover:bg-slate-800">
                 <a href="https://www.instagram.com/jiahao._.li/" target="_blank" rel="noopener noreferrer">
                   <Instagram size={20} />
                 </a>
@@ -33,7 +33,7 @@ export const Footer = () => {
                 <a href="https://github.com/jiahaoli0465" target="_blank" rel="noopener noreferrer">
                   <Github size={20} />
                 </a>
-              </Button>
+              </Button> */}
               <Button variant="ghost" size="icon" className="rounded-full hover:text-white hover:bg-slate-800">
                 <a href="mailto:jiahaoli0465@gmail.com">
                   <Mail size={20} />

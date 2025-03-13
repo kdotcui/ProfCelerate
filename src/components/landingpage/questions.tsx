@@ -36,7 +36,7 @@ export const Questions: React.FC = () => {
         {faqData.map((item,index) => (
           <AccordionItem value={`item-${index}`} className="hover:bg-zinc-100 data-[state=open]:bg-zinc-100">
             <AccordionTrigger className="text-xl font-semibold">{item.question}</AccordionTrigger>
-            <AccordionContent>{item.answer}</AccordionContent>
+            <AccordionContent className="text-lg">{item.answer}</AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>

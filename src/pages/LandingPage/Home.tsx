@@ -8,7 +8,7 @@ const Home: React.FC = () => {
   return (
     <div>
       <Features />
-      {/* <Demo /> */}
+      <Demo />
       <Questions />
     </div>
   );

@@ -40,7 +40,7 @@ export const Demo: React.FC = () => {
     <div className="flex flex-col py-16 gap-8 ">
       <div className="flex flex-col justify-center items-center text-center px-4">
         <h1 className="text-5xl md:text-6xl font-semibold mb-6 tracking-normal">
-          See AI Grading in Action
+          See Our Grader in Action
         </h1>
         <p className="text-xl text-slate-600 max-w-2xl mb-8">
           Watch how ProfCelerate automatically grades assignments in seconds,
