@@ -8,6 +8,8 @@ import Layout from './Layout';
 import Home from '../pages/Home';
 import About from '../pages/About';
 import NotFound from '../pages/NotFound';
+import TermsAgreement from '../pages/TermsAgreement';
+import PrivacyPolicy from '../pages/PrivacyPolicy';
 
 // Protected route wrapper
 import ProtectedRoute from './ProtectedRoute';
@@ -35,6 +37,14 @@ const router = createBrowserRouter([
   {
     path: '/auth/callback',
     element: <AuthCallback />,
+  },
+  {
+    path: '/terms-agreement',
+    element: <TermsAgreement />,
+  },
+  {
+    path: '/privacy-policy',
+    element: <PrivacyPolicy />,
   },
   {
     path: '/',

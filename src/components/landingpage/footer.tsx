@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Github, Instagram, Linkedin, ArrowRight, Mail} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -40,14 +41,14 @@ export const Footer = () => {
           </div>
 
           {/* Terms & Policies */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h3 className="text-lg font-semibold">Terms & Policies</h3>
             <ul className="space-y-2">
               <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
               <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Security</a></li>
               <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Documentation</a></li>
             </ul>
-          </div>
+          </div> */}
         </div>
 
         <Separator className="my-8 bg-slate-800" />
@@ -58,8 +59,8 @@ export const Footer = () => {
           </p>
           <div className="mt-4 md:mt-0">
             <ul className="flex space-x-6 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
+              <li><Link to="terms-agreement" className="hover:text-white transition-colors">Terms</Link></li>
+              <li><Link to="privacy-policy" className="hover:text-white transition-colors">Privacy</Link></li>
               <li><a href="#" className="hover:text-white transition-colors">Cookies</a></li>
             </ul>
           </div>
