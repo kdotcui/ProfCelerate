@@ -1,6 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 export default function TermsAgreement() {
+  useScrollToTop();
+  
   const today = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
