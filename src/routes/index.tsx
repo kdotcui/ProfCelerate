@@ -1,8 +1,9 @@
 import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
-// Layout
+// Layouts
 import Layout from './Layout';
+import LandingPageLayout from './LandingPageLayout';
 
 // Pages
 import Home from '../pages/LandingPage/Home';
@@ -39,20 +40,25 @@ const router = createBrowserRouter([
     element: <AuthCallback />,
   },
   {
-    path: '/terms-agreement',
-    element: <TermsAgreement />,
-  },
-  {
-    path: '/privacy-policy',
-    element: <PrivacyPolicy />,
-  },
-  {
-    path: '/',
-    element: <Home />,
-  },
-  {
-    path: '/about',
-    element: <About />
+    element: <LandingPageLayout />,
+    children: [
+      {
+        path: '/',
+        element: <Home />,
+      },
+      {
+        path: '/about',
+        element: <About />,
+      },
+      {
+        path: '/terms-agreement',
+        element: <TermsAgreement />,
+      },
+      {
+        path: '/privacy-policy',
+        element: <PrivacyPolicy />,
+      },
+    ],
   },
   {
     path: '/dashboard',

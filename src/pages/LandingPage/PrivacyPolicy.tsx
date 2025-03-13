@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { NavigationBar } from "@/components/landingpage/navigation-bar";
 
 export default function PrivacyPolicy() {
   const today = new Date().toLocaleDateString('en-US', {
@@ -10,7 +9,6 @@ export default function PrivacyPolicy() {
 
   return (
     <div className="min-h-screen bg-background">
-      <NavigationBar />
       <div className="container mx-auto py-8 px-4">
         <Card className="max-w-4xl mx-auto">
           <CardHeader>
