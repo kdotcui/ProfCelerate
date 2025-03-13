@@ -3,23 +3,15 @@ import {
   NavigationMenuItem,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { buttonVariants } from "../ui/button";
-import { User as UserIcon, Menu, Code } from "lucide-react";
+import { User as UserIcon, Menu, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import ProfessorIcon from "@/icons/Professor";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
-import { User } from '@supabase/supabase-js';
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { User } from '@supabase/supabase-js';
 
 export const NavigationBar = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -29,11 +21,10 @@ export const NavigationBar = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        setLoading(true); // Set loading to true at start
+        setLoading(true);
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
-          console.log(`User successfully retrieved`)
-          console.log(user)
+          console.log(`User successfully retrieved`, user)
           setCurrentUser(user);
         } else {
           console.log("User cannot be retrieved")
@@ -43,11 +34,20 @@ export const NavigationBar = () => {
         console.error("Error fetching user:", error);
         setCurrentUser(null);
       } finally {
-        setLoading(false); // Set loading to false when done
+        setLoading(false);
       }
     }
     fetchUser();
-  }, [])
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user || null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -78,45 +78,34 @@ export const NavigationBar = () => {
             <a href="#features" className={`text-lg ${buttonVariants({ variant: "ghost" })}`}>
               Features
             </a>
-            <a href="#demo" className={`text-lg ${buttonVariants({ variant: "ghost" })}`}>
-              Demo
-            </a>
             <a href="#testimonials" className={`text-lg ${buttonVariants({ variant: "ghost" })}`}>
               Customers
             </a>
             <a href="#pricing" className={`text-lg ${buttonVariants({ variant: "ghost" })}`}>
               Pricing
             </a>
-            {/* <Link to="/dashboard" className={`text-lg ${buttonVariants({ variant: "ghost" })}`}>
-              Dashboard
-            </Link> */}
+            {currentUser && (
+              <Link to="/dashboard" className={`text-lg ${buttonVariants({ variant: "ghost" })}`}>
+                Dashboard
+              </Link>
+            )}
           </div>
 
           <div className="hidden md:flex gap-2">
             {!currentUser ? (
               <Link to="/login" className={`text-large ${buttonVariants({ variant: "secondary" })}`}>
-                <UserIcon />
+                <UserIcon className="mr-2 h-5 w-5" />
                 Login
               </Link>
             ) : (
-              <DropdownMenu>
-                
-                <DropdownMenuTrigger className={`text-large ${buttonVariants({ variant: "secondary" })}`}>
-                  <UserIcon />
-                  Hello {currentUser.email}
-                  </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem><Link to="/dashboard">Dashboard</Link></DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <button onClick={handleLogout}>Logout</button>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
+              <button 
+                onClick={handleLogout}
+                className={`text-large ${buttonVariants({ variant: "secondary" })}`}
+              >
+                <LogOut className="mr-2 h-5 w-5" />
+                Logout
+              </button>
             )}
-
           </div>
 
           {/* mobile */}
@@ -127,7 +116,6 @@ export const NavigationBar = () => {
               </Menu>
             </div>
           </span>
-
 
         </NavigationMenuList>
       </NavigationMenu>
