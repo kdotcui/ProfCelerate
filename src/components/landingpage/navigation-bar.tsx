@@ -114,13 +114,12 @@ export const NavigationBar = () => {
               </Link>
             ) : (
               <DropdownMenu>
-                
                 <DropdownMenuTrigger className={`text-large ${buttonVariants({ variant: "secondary" })}`}>
                   <UserIcon />
-                  Hello {profile?.fullName?.split(" ")[0] || currentUser?.email}
+                  Hi {profile?.fullName?.split(" ")[0] || currentUser?.email}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuLabel><Link to="/dashboard/settings">My Account</Link></DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem><Link to="/dashboard">Dashboard</Link></DropdownMenuItem>
                   <DropdownMenuItem>

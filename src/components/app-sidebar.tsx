@@ -125,14 +125,17 @@ export function AppSidebar({ mainItems, secondaryItems }: AppSidebarProps) {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-xs font-bold text-primary-foreground">
-              <ProfessorIcon size={16} />
-            </span>
+        <Link to="/">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-xs font-bold text-primary-foreground">
+                <ProfessorIcon size={16} />
+              </span>
+            </div>
+            <span className="font-semibold">ProfCelerate</span>
           </div>
-          <span className="font-semibold">ProfCelerate</span>
-        </div>
+        </Link>
+
       </SidebarHeader>
 
       <SidebarContent>
