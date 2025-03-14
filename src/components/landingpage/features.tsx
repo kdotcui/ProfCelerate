@@ -46,7 +46,7 @@ export const Features = () => {
   };
   
   return (
-    <div className="hidden md:flex justify-between gap-x-4 px-20 py-12" >
+    <div className="hidden md:flex justify-between gap-x-4 px-20 py-12 bg-gradient-to-b from-white via-stone-50 to-stone-200" >
       <div className="w-1/2 flex flex-col text-black justify-center space-y-6">
         <h1 className="leading-tight font-semibold text-6xl mb-2">
           <span className="block">Grading is tedious.</span>
