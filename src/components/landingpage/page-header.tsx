@@ -7,39 +7,34 @@ import { supabase } from "@/lib/supabase";
 import { User } from '@supabase/supabase-js';
 import DashboardMock from "../../../public/images/dashboardmockup.png";
 
-export const Features = () => {
+export const PageHeader = () => {
   const [email, setEmail] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Initial check for current user
-    const getCurrentUser = async () => {
+    // Initial user fetch
+    const fetchUser = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
       } catch (error) {
-        console.error("Error getting current user:", error);
+        setUser(null);
+        console.error("Error fetching user:", error);
+        toast.error('Failed to load user data');
       }
     };
-    getCurrentUser();
-    
-    // Set up auth state listener
-    // const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-    //   console.log(`Auth event: ${event}`);
-    //   setUser(session?.user || null);
-      
-    //   if (event === 'SIGNED_IN') {
-    //     toast.success('Successfully signed in!');
-    //   } else if (event === 'SIGNED_OUT') {
-    //     toast.info('Signed out');
-    //   }
-    // });
+    fetchUser();
 
-    // // Clean up subscription when component unmounts
-    // return () => {
-    //   subscription.unsubscribe();
-    // };
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSignUp = () => {
@@ -51,7 +46,7 @@ export const Features = () => {
   };
   
   return (
-    <div className="hidden md:flex justify-between gap-x-4 px-20 py-12" >
+    <div className="hidden md:flex justify-between gap-x-4 px-20 py-12 bg-gradient-to-b from-white via-stone-50 to-stone-200" >
       <div className="w-1/2 flex flex-col text-black justify-center space-y-6">
         <h1 className="leading-tight font-semibold text-6xl mb-2">
           <span className="block">Grading is tedious.</span>
@@ -84,4 +79,4 @@ export const Features = () => {
       </div>
     </div>
   )
-}
+} 
