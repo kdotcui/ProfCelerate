@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useNavigate, Link } from "react-router-dom";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { User } from '@supabase/supabase-js';
@@ -13,10 +13,10 @@ export const Features = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Initial user fetch
     const fetchUser = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        console.log(`User`, user);
         setUser(user);
       } catch (error) {
         setUser(null);
@@ -25,6 +25,16 @@ export const Features = () => {
       }
     };
     fetchUser();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSignUp = () => {
