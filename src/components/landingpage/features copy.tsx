@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useNavigate, Link } from "react-router-dom";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { User } from '@supabase/supabase-js';
@@ -13,18 +13,33 @@ export const Features = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    // Initial check for current user
+    const getCurrentUser = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        console.log(`User`, user);
         setUser(user);
       } catch (error) {
-        setUser(null);
-        console.error("Error fetching user:", error);
-        toast.error('Failed to load user data');
+        console.error("Error getting current user:", error);
       }
     };
-    fetchUser();
+    getCurrentUser();
+    
+    // Set up auth state listener
+    // const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    //   console.log(`Auth event: ${event}`);
+    //   setUser(session?.user || null);
+      
+    //   if (event === 'SIGNED_IN') {
+    //     toast.success('Successfully signed in!');
+    //   } else if (event === 'SIGNED_OUT') {
+    //     toast.info('Signed out');
+    //   }
+    // });
+
+    // // Clean up subscription when component unmounts
+    // return () => {
+    //   subscription.unsubscribe();
+    // };
   }, []);
 
   const handleSignUp = () => {
